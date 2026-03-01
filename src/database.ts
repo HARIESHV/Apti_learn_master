@@ -2,7 +2,16 @@ import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import fs from 'fs';
 import path from 'path';
 
-const DB_PATH = path.join(__dirname, '..', 'aptilearn.db');
+let DB_PATH = path.join(__dirname, '..', 'aptilearn.db');
+
+// Handle Vercel read-only filesystem by moving DB to /tmp if necessary
+if (process.env.VERCEL) {
+  const tmpPath = path.join('/tmp', 'aptilearn.db');
+  if (!fs.existsSync(tmpPath) && fs.existsSync(DB_PATH)) {
+    fs.copyFileSync(DB_PATH, tmpPath);
+  }
+  DB_PATH = tmpPath;
+}
 
 let db: SqlJsDatabase;
 

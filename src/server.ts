@@ -17,6 +17,25 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Initialize database
+let dbInitialized = false;
+async function initialize() {
+    if (!dbInitialized) {
+        await dbModule.initializeDatabase();
+        dbInitialized = true;
+    }
+}
+
+// Ensure DB is initialized before processing ANY request (Critical for Vercel)
+app.use(async (req, res, next) => {
+    try {
+        await initialize();
+        next();
+    } catch (err) {
+        res.status(500).send('Database Initialization Error');
+    }
+});
+
 // Serve static files
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads')));
@@ -46,21 +65,5 @@ app.get('/student', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'student.html'));
 });
 
-// Initialize database and start server
-async function start() {
-    await dbModule.initializeDatabase();
-
-    app.listen(PORT, () => {
-        console.log(`
-  ╔══════════════════════════════════════════╗
-  ║     🎓 AptiLearn Master Server          ║
-  ║     Running on http://localhost:${PORT}    ║
-  ║     Database: SQLite (aptilearn.db)     ║
-  ╚══════════════════════════════════════════╝
-    `);
-    });
-}
-
-start().catch(console.error);
-
+// Note: Manual app.listen is bypassed on Vercel environment automatically by exporting app.
 export default app;
