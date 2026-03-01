@@ -240,6 +240,10 @@
                                     <option value="">All Categories</option>
                                 </select>
                                 <button class="btn btn-primary" onclick="openQuestionModal()">+ Add Question</button>
+                                <button class="btn btn-danger" onclick="clearAllQuestions()"
+                                    style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                    🗑️ Clear All
+                                </button>
                             </div>
                         </div>
                         <div class="table-container-v4">
@@ -280,6 +284,7 @@
                                         <th>Quizzes</th>
                                         <th>Avg Score</th>
                                         <th>Joined</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="students-body">

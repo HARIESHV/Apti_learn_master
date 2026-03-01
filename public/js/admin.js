@@ -324,14 +324,35 @@ document.getElementById('question-form').onsubmit = async (e) => {
 };
 
 async function deleteQuestion(id) {
-    if (!confirm('Are you sure?')) return;
-    const res = await fetch(`${API_BASE}/admin/questions/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    });
-    if (res.ok) { showToast('Question deleted'); loadQuestions(); }
+    if (!confirm('Are you sure you want to delete this question?')) return;
+    const res = await fetch(`${API_BASE}/admin/questions/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+    if (res.ok) {
+        showToast('Question deleted', 'success');
+        loadQuestions();
+        loadDashboardStats();
+    }
 }
 
+async function clearAllQuestions() {
+    if (!confirm('⚠️ WARNING: This will delete ALL questions from the database. This action cannot be undone. Area you sure?')) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/questions/all`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (res.ok) {
+            showToast('All questions cleared', 'success');
+            loadQuestions();
+            loadDashboardStats();
+        } else {
+            const data = await res.json();
+            showToast(data.error || 'Failed to clear questions', 'error');
+        }
+    } catch (err) {
+        showToast('Error clearing questions', 'error');
+    }
+}
 // ── SUBTOPICS ──
 async function loadSubtopics() {
     const catId = document.getElementById('filter-subtopic-category').value;
@@ -469,15 +490,39 @@ async function loadStudents() {
             <td>${s.total_attempts}</td>
             <td><span class="badge ${s.avg_score >= 70 ? 'badge-score-high' : s.avg_score >= 40 ? 'badge-score-mid' : 'badge-score-low'}">${s.avg_score || 0}%</span></td>
             <td>${formatISTDate(s.created_at)}</td>
-        </tr>
+            <td>
+                <button class="btn btn-sm btn-danger" onclick="deleteStudent(${s.id}, '${s.full_name.replace(/'/g, "\\'")}')" 
+                style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">Delete</button>
+            </td>
         </tr>
     `).join('');
+}
+
+async function deleteStudent(id, name) {
+    if (!confirm(`Are you sure you want to delete student "${name}"? This will also remove all their scores and messages.`)) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/students/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('Student deleted successfully', 'success');
+            loadStudents();
+            loadDashboardStats();
+        } else {
+            showToast(data.error || 'Failed to delete student', 'error');
+        }
+    } catch (err) {
+        showToast('Error deleting student', 'error');
+    }
 }
 
 // ── SUBMISSIONS ──
 async function loadSubmissions() {
     try {
-        const res = await fetch(`${API_BASE}/admin/submissions`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+        const res = await fetch(`${API_BASE} /admin/submissions`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')} ` } });
         const data = await res.json();
         const tbody = document.getElementById('submissions-body');
 
@@ -487,13 +532,13 @@ async function loadSubmissions() {
         }
 
         tbody.innerHTML = data.submissions.map(sub => `
-            <tr>
+        < tr >
                 <td><strong>${sub.student_name}</strong></td>
                 <td><span class="badge badge-score-mid">${sub.category_name}</span></td>
                 <td><div style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${sub.question_text}">${sub.question_text}</div></td>
                 <td><a href="${sub.file_path}" target="_blank" class="btn btn-sm" style="background: rgba(139, 92, 246, 0.2); color: var(--primary-light); text-decoration: none;">Download File 📥</a></td>
                 <td style="color:var(--text-muted); font-size: 0.85rem;">${formatISTDate(sub.completed_at)}</td>
-            </tr>
+            </tr >
         `).join('');
     } catch (err) {
         document.getElementById('submissions-body').innerHTML = '<tr><td colspan="5" class="empty-state"><p>Error loading submissions.</p></td></tr>';
@@ -505,7 +550,7 @@ function openSessionModal() { document.getElementById('session-modal').classList
 function closeSessionModal() { document.getElementById('session-modal').classList.remove('active'); }
 
 async function loadSessions() {
-    const res = await fetch(`${API_BASE}/sessions/admin`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+    const res = await fetch(`${API_BASE} /sessions/admin`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')} ` } });
     const data = await res.json();
     const grid = document.getElementById('sessions-grid');
     if (data.sessions.length === 0) {
@@ -513,7 +558,7 @@ async function loadSessions() {
         return;
     }
     grid.innerHTML = data.sessions.map(s => `
-        <div class="glass-card session-card ${s.is_active ? 'is-live' : ''}" style="border-top: 3px solid ${s.is_active ? '#10b981' : 'var(--border)'}; padding: 1.5rem;">
+        < div class="glass-card session-card ${s.is_active ? 'is-live' : ''}" style = "border-top: 3px solid ${s.is_active ? '#10b981' : 'var(--border)'}; padding: 1.5rem;" >
             <div style="margin-bottom: 1rem;"><span class="badge-pill ${s.is_active ? 'success' : 'warning'}" style="font-weight: 700; font-size: 0.7rem; padding: 0.3rem 0.6rem;">${s.is_active ? '● ACTIVE' : 'ENDED'}</span></div>
             <h4 class="session-title" style="font-size: 1.1rem; font-weight: 700; color: white;">${s.title}</h4>
             <p class="session-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">${s.description || 'No description provided.'}</p>
@@ -525,8 +570,8 @@ async function loadSessions() {
                 <button class="btn btn-sm btn-secondary" onclick="toggleSession(${s.id})" style="padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600;">${s.is_active ? 'Stop' : 'Start'}</button>
                 <button class="btn btn-sm btn-danger" onclick="deleteSession(${s.id})" style="padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600;">Del</button>
             </div>
-        </div>
-    `).join('');
+        </div >
+        `).join('');
 }
 
 document.getElementById('session-form').onsubmit = async (e) => {

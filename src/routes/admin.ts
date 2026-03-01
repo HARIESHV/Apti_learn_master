@@ -210,6 +210,44 @@ router.get('/students', (req: AuthRequest, res: Response) => {
     }
 });
 
+// DELETE /api/admin/students/:id
+router.delete('/students/:id', (req: AuthRequest, res: Response) => {
+    try {
+        const studentId = parseInt(req.params.id as string);
+        const db = dbModule.getDb();
+
+        // Delete related data first (since we don't have CASCADE on all tables yet)
+        db.run('DELETE FROM attempt_answers WHERE attempt_id IN (SELECT id FROM quiz_attempts WHERE student_id = ?)', [studentId]);
+        db.run('DELETE FROM quiz_attempts WHERE student_id = ?', [studentId]);
+        db.run('DELETE FROM messages WHERE sender_id = ? OR recipient_id = ?', [studentId, studentId]);
+        db.run('DELETE FROM notifications WHERE recipient_id = ?', [studentId]);
+
+        // Delete the user
+        db.run('DELETE FROM users WHERE id = ? AND role = "student"', [studentId]);
+
+        dbModule.saveDatabase();
+        res.json({ message: 'Student and related data deleted successfully' });
+    } catch (err) {
+        console.error('Delete student error:', err);
+        res.status(500).json({ error: 'Failed to delete student' });
+    }
+});
+
+// DELETE /api/admin/questions/all
+router.delete('/questions/all', (req: AuthRequest, res: Response) => {
+    try {
+        const db = dbModule.getDb();
+        // Delete all question answers and then questions
+        db.run('DELETE FROM attempt_answers');
+        db.run('DELETE FROM questions');
+        dbModule.saveDatabase();
+        res.json({ message: 'All questions cleared successfully' });
+    } catch (err) {
+        console.error('Clear questions error:', err);
+        res.status(500).json({ error: 'Failed to clear questions' });
+    }
+});
+
 // GET /api/admin/submissions
 router.get('/submissions', (req: AuthRequest, res: Response) => {
     try {
