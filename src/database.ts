@@ -16,12 +16,11 @@ if (process.env.VERCEL) {
 let db: SqlJsDatabase;
 
 export async function initializeDatabase(): Promise<SqlJsDatabase> {
-  const SQL = await initSqlJs({
-    // Use a reliable CDN for the WASM file to avoid bundling issues on Vercel
-    locateFile: (file) => file.endsWith('.wasm')
-      ? `https://sql.js.org/dist/sql-wasm.wasm`
-      : file
-  });
+  // Directly load the wasm binary to bypass filesystem detection issues on serverless
+  const wasmPath = path.join(process.cwd(), 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm');
+  const buffer = fs.readFileSync(wasmPath);
+  const wasmBinary = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  const SQL = await initSqlJs({ wasmBinary });
 
   if (fs.existsSync(DB_PATH)) {
     const fileBuffer = fs.readFileSync(DB_PATH);
