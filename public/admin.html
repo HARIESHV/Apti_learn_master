@@ -186,10 +186,52 @@
                                         <th>Date</th>
                                     </tr>
                                 </thead>
-                                <tbody id="recent-attempts-body">
-                                    <tr>
+                                <tbody>
+                                    <tr v-for="att in recentAttempts" :key="att.id">
+                                        <td><strong>{{ att.full_name }}</strong></td>
+                                        <td><span class="badge"
+                                                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.8)">{{
+                                                att.category }}</span></td>
+                                        <td><span
+                                                :class="['badge', att.percentage >= 70 ? 'badge-score-high' : att.percentage >= 40 ? 'badge-score-mid' : 'badge-score-low']">{{
+                                                att.score }}/{{ att.total_questions }} ({{ att.percentage }}%)</span>
+                                        </td>
+                                        <td style="color:var(--text-muted);font-size:0.85rem">{{
+                                            formatISTDate(att.completed_at) }}</td>
+                                    </tr>
+                                    <tr v-if="recentAttempts.length === 0">
                                         <td colspan="5" class="empty-state">
                                             <p>No attempts yet</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="section-header" style="margin-top: 2rem;">
+                            <h3 class="section-title">👤 Recent Student Registrations</h3>
+                        </div>
+                        <div class="table-container-v4">
+                            <table class="data-table-v4">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Joined Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="reg in recentRegistrations" :key="reg.id">
+                                        <td><strong>{{ reg.full_name }}</strong></td>
+                                        <td>{{ reg.username }}</td>
+                                        <td>{{ reg.email }}</td>
+                                        <td style="color:var(--text-muted);font-size:0.85rem">{{
+                                            formatISTDate(reg.created_at) }}</td>
+                                    </tr>
+                                    <tr v-if="recentRegistrations.length === 0">
+                                        <td colspan="4" class="empty-state">
+                                            <p>No registrations yet</p>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -876,6 +918,9 @@
                         totalMeetings: 0
                     });
 
+                    const recentAttempts = ref([]);
+                    const recentRegistrations = ref([]);
+
                     const fetchStats = async () => {
                         const data = await loadDashboardStats();
                         if (data && data.stats) {
@@ -884,10 +929,8 @@
                             stats.avgScore = data.stats.avgScore;
                             stats.totalMeetings = data.stats.totalMeetings;
 
-                            // Also populate recent attempts table (legacy part)
-                            if (typeof populateRecentAttempts === 'function') {
-                                populateRecentAttempts(data.recentAttempts);
-                            }
+                            recentAttempts.value = data.recentAttempts || [];
+                            recentRegistrations.value = data.recentRegistrations || [];
                         }
                     };
 
@@ -898,7 +941,7 @@
                     // Expose to global scope for legacy admin.js calls
                     window.refreshDashboardStats = fetchStats;
 
-                    return { currentTab, stats };
+                    return { currentTab, stats, recentAttempts, recentRegistrations, formatISTDate };
                 }
             }).mount('#app');
         </script>

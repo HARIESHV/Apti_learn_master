@@ -70,17 +70,29 @@ app.get('/student', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'student.html'));
 });
 
-// Only listen on local development. Vercel handles the export.
-if (!process.env.VERCEL) {
-    app.listen(PORT, () => {
-        console.log(`
-  ╔══════════════════════════════════════════╗
-  ║     🎓 AptiLearn Master Server          ║
-  ║     Running on http://localhost:${PORT}    ║
-  ║     Database: SQLite (aptilearn.db)     ║
-  ╚══════════════════════════════════════════╝
-        `);
-    });
+// Start the server
+async function startServer() {
+    try {
+        // Initialize DB before starting server
+        await dbModule.initializeDatabase();
+
+        if (!process.env.VERCEL) {
+            app.listen(PORT, () => {
+                console.log(`
+  ╔═════════════════════════════════════════════╗
+  ║       🎓 AptiLearn Master Server            ║
+  ║       Running on http://localhost:${PORT}      ║
+  ║       Database: SQLite (aptilearn.db)       ║
+  ╚═════════════════════════════════════════════╝
+                `);
+            });
+        }
+    } catch (err) {
+        console.error('❌ Failed to start server:', err);
+        process.exit(1);
+    }
 }
+
+startServer();
 
 export default app;

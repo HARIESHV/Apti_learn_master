@@ -31,12 +31,18 @@ router.get('/dashboard', (req: AuthRequest, res: Response) => {
       ORDER BY qa.completed_at DESC LIMIT 10
     `);
 
+        const recentRegistrations = getAll(`
+            SELECT id, full_name, username, email, created_at
+            FROM users WHERE role = 'student'
+            ORDER BY created_at DESC LIMIT 5
+        `);
+
         const categoryStats = getAll(`
-      SELECT c.id, c.name, c.icon, COUNT(q.id) as question_count
-      FROM categories c
-      LEFT JOIN questions q ON c.id = q.category_id
-      GROUP BY c.id
-    `);
+            SELECT c.id, c.name, c.icon, COUNT(q.id) as question_count
+            FROM categories c
+            LEFT JOIN questions q ON c.id = q.category_id
+            GROUP BY c.id
+        `);
 
         res.json({
             stats: {
@@ -48,6 +54,7 @@ router.get('/dashboard', (req: AuthRequest, res: Response) => {
                 avgScore: avgScore?.avg_score || 0
             },
             recentAttempts,
+            recentRegistrations,
             categoryStats
         });
     } catch (err) {

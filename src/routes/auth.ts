@@ -20,12 +20,14 @@ router.post('/register', async (req: AuthRequest, res: Response) => {
         db.run('INSERT INTO users (username, email, password_hash, full_name, role) VALUES (?, ?, ?, ?, ?)',
             [username, email, password_hash, full_name, 'student']);
         const lastId = (db.exec('SELECT last_insert_rowid() as id')[0].values[0][0]) as number;
+        console.log(`[Auth] Registered new student: ${username} (ID: ${lastId})`);
 
         // Notify admin
         db.run('INSERT INTO notifications (recipient_role, message, type) VALUES (?, ?, ?)',
             ['admin', `New student registered: ${full_name} (@${username})`, 'registration']);
 
         dbModule.saveDatabase();
+        console.log(`[Auth] Database saved after registration of ${username}`);
 
         const token = generateToken({ id: lastId, username, role: 'student', full_name });
         res.status(201).json({ message: 'Registration successful', token, user: { id: lastId, username, email, full_name, role: 'student' } });
