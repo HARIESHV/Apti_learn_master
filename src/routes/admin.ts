@@ -372,6 +372,34 @@ router.get('/students/:id/activity', (req: AuthRequest, res: Response) => {
     }
 });
 
+// POST /api/admin/reset-all (DANGER: Wipes everything except admins)
+router.post('/reset-all', (req: AuthRequest, res: Response) => {
+    try {
+        const db = dbModule.getDb();
+
+        // 1. Wipe all quiz related data
+        db.run('DELETE FROM attempt_answers');
+        db.run('DELETE FROM quiz_attempts');
+        db.run('DELETE FROM questions');
+        db.run('DELETE FROM subtopics');
+        db.run('DELETE FROM categories');
+
+        // 2. Wipe communications
+        db.run('DELETE FROM messages');
+        db.run('DELETE FROM notifications');
+        db.run('DELETE FROM live_sessions');
+
+        // 3. Wipe all students (keep admins)
+        db.run("DELETE FROM users WHERE role = 'student'");
+
+        dbModule.saveDatabase();
+        res.json({ message: 'System reset successful. All student data and content cleared.' });
+    } catch (err) {
+        console.error('Reset all error:', err);
+        res.status(500).json({ error: 'Failed to reset system' });
+    }
+});
+
 // POST /api/admin/broadcast
 router.post('/broadcast', (req: AuthRequest, res: Response) => {
     try {

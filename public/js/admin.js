@@ -91,12 +91,59 @@ function logout() {
 // ── OVERVIEW ──
 async function loadDashboardStats() {
     try {
-        const response = await fetch(`${API_BASE}/admin/dashboard`, {
+        const res = await fetch(`${API_BASE}/admin/dashboard`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+        const data = await res.json();
+        const { stats, recentAttempts, categoryStats } = data;
+
+        document.querySelectorAll('.kpi-students .kpi-value-v4').forEach(el => el.textContent = stats.totalStudents);
+        document.querySelectorAll('.kpi-attempts .kpi-value-v4').forEach(el => el.textContent = stats.totalAttempts);
+        document.querySelectorAll('.kpi-percentage .kpi-value-v4').forEach(el => el.textContent = `${stats.avgScore}%`);
+        document.querySelectorAll('.kpi-average .kpi-value-v4').forEach(el => el.textContent = stats.avgScore);
+
+        const recentBody = document.getElementById('recent-attempts-body');
+        if (recentAttempts.length === 0) {
+            recentBody.innerHTML = '<tr><td colspan="5" class="empty-state"><p>No activity yet.</p></td></tr>';
+        } else {
+            recentBody.innerHTML = recentAttempts.map(att => `
+                <tr>
+                    <td><strong>${att.full_name}</strong></td>
+                    <td><span class="badge" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.8)">${att.category}</span></td>
+                    <td><span class="badge ${att.percentage >= 70 ? 'badge-score-high' : att.percentage >= 40 ? 'badge-score-mid' : 'badge-score-low'}">${att.score}/${att.total_questions} (${att.percentage}%)</span></td>
+                    <td style="color:var(--text-muted);font-size:0.85rem">${formatISTDate(att.completed_at)}</td>
+                </tr>
+            `).join('');
+        }
+    } catch (err) {
+        console.error('Stats error:', err);
+    }
+}
+
+async function resetWebsiteData() {
+    const confirmText = 'DANGER: This will delete ALL questions, categories, students, and quiz scores. This is a FINAL reset for a fresh start. Type "RESET" to confirm:';
+    const userInput = prompt(confirmText);
+
+    if (userInput !== 'RESET') {
+        showToast('Reset cancelled. Confirmation mismatched.', 'info');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/reset-all`, {
+            method: 'POST',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
-        const data = await response.json();
-        return data;
-    } catch (err) { console.error(err); return null; }
+
+        if (res.ok) {
+            playNotificationSound(true);
+            showToast('Website Reset Successful! Redirecting...', 'success');
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            const data = await res.json();
+            showToast(data.error || 'Reset failed', 'error');
+        }
+    } catch (err) {
+        showToast('Network error during reset', 'error');
+    }
 }
 
 // Function to populate recent attempts manually for now if needed, or we can move it to Vue
