@@ -65,5 +65,17 @@ app.get('/student', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'student.html'));
 });
 
-// Note: Manual app.listen is bypassed on Vercel environment automatically by exporting app.
+// Only listen on local development. Vercel handles the export.
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`
+  ╔══════════════════════════════════════════╗
+  ║     🎓 AptiLearn Master Server          ║
+  ║     Running on http://localhost:${PORT}    ║
+  ║     Database: SQLite (aptilearn.db)     ║
+  ╚══════════════════════════════════════════╝
+        `);
+    });
+}
+
 export default app;
