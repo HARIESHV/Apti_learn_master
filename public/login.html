@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AptiLearn Master - Premium aptitude learning platform for students and educators">
+    <title>AptitudeLearn | Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Scripts for animations -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+</head>
+
+<body class="login-body">
+    <div class="theme-switch-wrapper" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+        <span class="mode-icon" id="theme-icon">☀️</span>
+    </div>
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Static Image Background -->
+    <div class="bg-animations" id="bg-animations"></div>
+
+
+
+    <div class="login-container" id="app">
+        <div class="login-box">
+            <div class="login-header-v3">
+                <div class="lock-orbit">
+                    <div class="orbit-ring"></div>
+                    <svg class="lock-icon-svg" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm0 2a3 3 0 0 1 3 3v3H9V7a3 3 0 0 1 3-3zm0 10a2 2 0 1 1 0 4 2 2 0 0 1 0-4z" />
+                    </svg>
+                </div>
+                <h1 class="login-title-v3">Welcome Back</h1>
+                <p class="login-subtitle-v3">Sign in to continue</p>
+            </div>
+
+            <div class="glass-card login-card-v3">
+                <!-- Tab Switcher -->
+                <div class="tab-switcher-v3">
+                    <button class="tab-btn-v3" :class="{active: activeTab === 'admin-login'}"
+                        @click="activeTab = 'admin-login'">Admin</button>
+                    <button class="tab-btn-v3" :class="{active: activeTab === 'student-login'}"
+                        @click="activeTab = 'student-login'">Student</button>
+                </div>
+
+                <!-- Message Display -->
+                <transition name="fade">
+                    <div v-if="message" id="auth-message" class="message show" :class="'message-' + messageType">
+                        {{ message }}
+                    </div>
+                </transition>
+
+                <!-- Panel Container with Transition -->
+                <div class="form-container" style="position: relative; overflow: hidden; min-height: 320px;">
+                    <transition name="panel-slide" mode="out-in">
+                        <!-- Admin Login Panel -->
+                        <div v-if="activeTab === 'admin-login'" class="tab-panel active" key="admin">
+                            <form @submit.prevent="handleAdminLogin">
+                                <div class="form-group">
+                                    <label class="form-label-v3">Username</label>
+                                    <div class="input-wrapper-v3">
+                                        <span class="field-icon">👤</span>
+                                        <input type="text" v-model="admin.username" class="form-input-v3"
+                                            placeholder="Enter your username" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label-v3">Password</label>
+                                    <div class="input-wrapper-v3">
+                                        <span class="field-icon">🔒</span>
+                                        <input :type="showPass ? 'text' : 'password'" v-model="admin.password"
+                                            class="form-input-v3" placeholder="Enter your password" required>
+                                        <button type="button" class="field-toggle" @click="showPass = !showPass">{{
+                                            showPass ? '🙈' : '👁️' }}</button>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-gradient-v3 sequenced-btn"
+                                    :disabled="loading" style="opacity: 1; animation: none;">
+                                    <span v-if="!loading">Enter Dashboard <span class="arrow">→</span></span>
+                                    <span v-else class="spinner"></span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Student Login Panel -->
+                        <div v-else-if="activeTab === 'student-login'" class="tab-panel active" key="student">
+                            <form @submit.prevent="handleStudentLogin">
+                                <div class="form-group">
+                                    <label class="form-label-v3">Username</label>
+                                    <div class="input-wrapper-v3">
+                                        <span class="field-icon">👤</span>
+                                        <input type="text" v-model="student.username" class="form-input-v3"
+                                            placeholder="Enter your username" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label-v3">Password</label>
+                                    <div class="input-wrapper-v3">
+                                        <span class="field-icon">🔒</span>
+                                        <input :type="showPass ? 'text' : 'password'" v-model="student.password"
+                                            class="form-input-v3" placeholder="Enter your password" required>
+                                        <button type="button" class="field-toggle" @click="showPass = !showPass">{{
+                                            showPass ? '🙈' : '👁️' }}</button>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-gradient-v3 sequenced-btn"
+                                    :disabled="loading" style="opacity: 1; animation: none;">
+                                    <span v-if="!loading">Enter Dashboard <span class="arrow">→</span></span>
+                                    <span v-else class="spinner"></span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Registration Panel -->
+                        <div v-else-if="activeTab === 'register'" class="tab-panel active" key="register">
+                            <form @submit.prevent="handleRegister">
+                                <div class="form-group">
+                                    <label class="form-label-v3">Full Name</label>
+                                    <div class="input-wrapper-v3">
+                                        <input type="text" v-model="reg.full_name" class="form-input-v3"
+                                            placeholder="John Doe" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label-v3">Username</label>
+                                    <div class="input-wrapper-v3">
+                                        <input type="text" v-model="reg.username" class="form-input-v3"
+                                            placeholder="johndoe123" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label-v3">Email</label>
+                                    <div class="input-wrapper-v3">
+                                        <input type="email" v-model="reg.email" class="form-input-v3"
+                                            placeholder="john@example.com" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label-v3">Password</label>
+                                    <div class="input-wrapper-v3">
+                                        <input type="password" v-model="reg.password" class="form-input-v3"
+                                            placeholder="Min. 6 characters" required minlength="6">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-gradient-v3" :disabled="loading"
+                                    style="width: 100%;">
+                                    <span v-if="!loading">Register Here <span class="arrow">→</span></span>
+                                    <span v-else class="spinner"></span>
+                                </button>
+                            </form>
+                        </div>
+                    </transition>
+                </div>
+
+                <div class="login-footer-v3">
+                    <span>{{ activeTab === 'register' ? 'Already have an account?' : "Don't have an account?" }}</span>
+                    <button @click="activeTab = activeTab === 'register' ? 'student-login' : 'register'"
+                        class="register-link-v3">
+                        {{ activeTab === 'register' ? 'Login here' : 'Register here' }}
+                    </button>
+                </div>
+
+                <div class="secure-footer">
+                    <svg class="secure-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="M12 8v4" />
+                        <path d="M12 16h.01" />
+                    </svg>
+                    Secure Access
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/login.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AptiLearn Master - Student Dashboard">
+    <title>AptitudeLearn | Student Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Vue & Animation Libs -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+</head>
+
+<body class="student-body">
+
+    <!-- Static Image Background -->
+    <div class="bg-animations" id="bg-animations"></div>
+
+
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <div id="app">
+        <div class="saas-layout">
+            <!-- New Slim Sidebar -->
+            <aside class="saas-sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-logo-container">
+                        <div class="brand-logo" style="background: transparent; border: none; font-size: 2rem;">🎓</div>
+                        <div>
+                            <div class="sidebar-brand-text" style="color: #a855f7; font-size: 1.4rem;">AptiLearn</div>
+                            <div class="sidebar-portal-label"
+                                style="text-transform: uppercase; color: var(--text-muted); font-size: 0.75rem; letter-spacing: 1px;">
+                                Student Portal</div>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="sidebar-menu">
+                    <div class="menu-label">Learning Path</div>
+                    <a class="menu-link active" data-section="overview" onclick="showSection('overview')">
+                        <span class="menu-icon">📊</span>
+                        <span class="menu-text">Overview</span>
+                    </a>
+                    <a class="menu-link" data-section="quiz" onclick="showSection('quiz')">
+                        <span class="menu-icon">🎯</span>
+                        <span class="menu-text">Take Quiz</span>
+                    </a>
+                    <a class="menu-link" data-section="history" onclick="showSection('history')">
+                        <span class="menu-icon">📜</span>
+                        <span class="menu-text">History</span>
+                    </a>
+
+                    <div class="menu-label" style="margin-top: 1.5rem;">Engagement</div>
+                    <a class="menu-link" data-section="sessions" onclick="showSection('sessions')">
+                        <span class="menu-icon">🎥</span>
+                        <span class="menu-text">Live Sessions</span>
+                    </a>
+                    <a class="menu-link" data-section="messages" onclick="showSection('messages')">
+                        <span class="menu-icon">💬</span>
+                        <span class="menu-text">Messages</span>
+                    </a>
+                </nav>
+
+                <div class="sidebar-bottom">
+                    <div class="sidebar-profile-card">
+                        <div class="side-profile-avatar" id="side-avatar">S</div>
+                        <div class="side-profile-info">
+                            <span class="side-profile-name" id="side-name">Student</span>
+                            <span class="side-profile-role">Student Member</span>
+                        </div>
+                    </div>
+                    <button class="side-action-btn" onclick="logout()">
+                        <span>🚪</span> Sign Out
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Workspace -->
+            <div class="workspace">
+                <!-- Top Navbar -->
+                <header class="saas-navbar">
+
+                    <div class="nav-right">
+                        <div class="nav-action-item" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+                            <span id="theme-icon-nav">☀️</span>
+                        </div>
+
+                        <div class="nav-action-item" title="Notifications">
+                            <span>🔔</span>
+                            <span class="notification-dot"></span>
+                        </div>
+
+                        <div class="nav-profile-pill">
+                            <div class="profile-pill-meta">
+                                <span class="profile-pill-name" id="nav-name">Student</span>
+                                <span class="profile-pill-subtitle" id="nav-role">Student Member</span>
+                            </div>
+                            <div class="profile-pill-avatar" id="nav-avatar">S</div>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="main-content-v4" id="main-content">
+                    <!-- ═══════ OVERVIEW ═══════ -->
+                    <div class="dashboard-section active" id="section-overview">
+                        <div class="page-header">
+                            <h1 class="page-title">Welcome back, <span id="welcome-name">Student</span>! 👋</h1>
+                            <p class="page-subtitle">Track your aptitude progress and keep practicing</p>
+                        </div>
+                        <div class="kpi-grid-v4">
+                            <div class="kpi-card-v4">
+                                <div class="kpi-icon-v4">📝</div>
+                                <div class="kpi-data-v4">
+                                    <h3 class="kpi-value-v4" id="stat-attempts">0</h3>
+                                    <span class="kpi-label-v4">Quizzes Taken</span>
+                                </div>
+                            </div>
+                            <div class="kpi-card-v4">
+                                <div class="kpi-icon-v4">📈</div>
+                                <div class="kpi-data-v4">
+                                    <h3 class="kpi-value-v4" id="stat-avg-score">0%</h3>
+                                    <span class="kpi-label-v4">Average Score</span>
+                                </div>
+                            </div>
+                            <div class="kpi-card-v4">
+                                <div class="kpi-icon-v4">🏆</div>
+                                <div class="kpi-data-v4">
+                                    <h3 class="kpi-value-v4" id="stat-best-score">0%</h3>
+                                    <span class="kpi-label-v4">Best Score</span>
+                                </div>
+                            </div>
+                            <div class="kpi-card-v4">
+                                <div class="kpi-icon-v4">📁</div>
+                                <div class="kpi-data-v4">
+                                    <h3 class="kpi-value-v4" id="stat-categories">0</h3>
+                                    <span class="kpi-label-v4">Categories Tried</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-header">
+                            <h3 class="section-title">📊 Category Performance</h3>
+                        </div>
+                        <div class="table-container-v4">
+                            <table class="data-table-v4">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Attempts</th>
+                                        <th>Avg Score</th>
+                                        <th>Best Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="category-performance-body">
+                                    <tr>
+                                        <td colspan="4" class="empty-state">
+                                            <p>Take a quiz to see your performance!</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="section-header" style="margin-top:2.5rem;">
+                            <h3 class="section-title">📋 Recent Activity</h3>
+                        </div>
+                        <div class="table-container-v4">
+                            <table class="data-table-v4">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Score</th>
+                                        <th>Percentage</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-attempts-body">
+                                    <tr>
+                                        <td colspan="4" class="empty-state">
+                                            <p>No attempts yet</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ═══════ QUIZ ═══════ -->
+                    <div class="dashboard-section" id="section-quiz">
+                        <!-- Category Selection -->
+                        <div id="quiz-select">
+                            <div class="page-header">
+                                <h1 class="page-title">Take a Quiz 🎯</h1>
+                                <p class="page-subtitle">Choose a category to start your aptitude challenge</p>
+                            </div>
+                            <div class="category-grid" id="quiz-categories">
+                                <div class="loading-overlay">
+                                    <div class="spinner"></div>
+                                    <p>Loading categories...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quiz In Progress -->
+                        <div id="quiz-active" style="display:none;">
+                            <div class="quiz-container">
+
+                                <!-- Quiz Intro Screen (Mockup 2) -->
+                                <div id="quiz-intro-screen"
+                                    style="background: rgba(35, 40, 60, 0.9); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border-radius: var(--radius-lg); padding: 2rem;">
+                                    <!-- Header Area -->
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+                                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                                            <div
+                                                style="background: rgba(255, 255, 255, 0.05); padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; color: #a855f7; border: 1px solid rgba(255,255,255,0.05);">
+                                                Q1</div>
+                                            <div>
+                                                <div style="color: #6366f1; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.25rem;"
+                                                    id="intro-category">Category</div>
+                                                <h2 style="font-size: 1.5rem; color: white; font-weight: 700;"
+                                                    id="intro-title">
+                                                    Quiz Attempt</h2>
+                                            </div>
+                                        </div>
+                                        <div
+                                            style="border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; color: rgba(255,255,255,0.7); background: rgba(0,0,0,0.2);">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <polyline points="12 6 12 12 16 14"></polyline>
+                                            </svg>
+                                            Not Started
+                                        </div>
+                                    </div>
+
+                                    <!-- Main Action Area -->
+                                    <div
+                                        style="background: rgba(17, 24, 39, 0.4); border-radius: 16px; padding: 4rem 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.03);">
+                                        <div
+                                            style="width: 64px; height: 64px; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <polyline points="12 6 12 12 16 14"></polyline>
+                                            </svg>
+                                        </div>
+                                        <h3
+                                            style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem;">
+                                            Ready to begin?</h3>
+                                        <p
+                                            style="color: rgba(255,255,255,0.7); font-size: 0.95rem; margin-bottom: 2rem;">
+                                            The
+                                            timer will start once you click below.</p>
+                                        <button class="btn btn-primary" onclick="beginQuizAttempt()"
+                                            style="background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); border: none; padding: 1rem 3rem; font-size: 1rem; font-weight: 700; border-radius: 8px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">Start
+                                            Attempt</button>
+                                    </div>
+                                </div>
+
+                                <!-- Actual Quiz Content (Hidden Initially) -->
+                                <div id="quiz-actual-content" style="display: none;">
+                                    <div class="quiz-header">
+                                        <h2 id="quiz-category-name">Quiz</h2>
+                                        <div style="display:flex;align-items:center;gap:1rem;">
+                                            <div class="quiz-timer" id="quiz-timer" style="display:none;">⏱️ <span
+                                                    id="timer-display">00:00</span></div>
+                                            <span style="color:var(--text-muted);font-size:0.875rem;">
+                                                Q <strong id="quiz-current">1</strong>/<strong
+                                                    id="quiz-total">10</strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="quiz-progress">
+                                        <div class="quiz-progress-bar" id="quiz-progress-bar" style="width:0%"></div>
+                                    </div>
+
+                                    <div class="glass-card question-card">
+                                        <div class="question-number" id="question-number">Question 1</div>
+                                        <p class="question-text" id="question-text">Loading question...</p>
+                                        <div class="question-description" id="question-description"
+                                            style="display:none;">
+                                        </div>
+                                        <ul class="options-list" id="options-list"></ul>
+
+                                        <!-- File Upload Zone -->
+                                        <div class="upload-zone" id="upload-zone"
+                                            onclick="document.getElementById('quiz-file-input').click()">
+                                            <div class="upload-icon">📎</div>
+                                            <p>Click to upload a file for this question</p>
+                                            <input type="file" id="quiz-file-input" onchange="onQuizFileUpload(this)">
+                                            <div class="uploaded-file-name" id="uploaded-file-name"
+                                                style="display:none;">
+                                            </div>
+                                        </div>
+                                        <div
+                                            style="font-size: 0.75rem; color: rgba(255,255,255,0.4); text-align: center; margin-top: 0.5rem;">
+                                            Files attached here will be sent directly to the Admin for review.</div>
+                                    </div>
+
+                                    <div class="quiz-nav">
+                                        <button class="btn btn-secondary" id="btn-prev" onclick="prevQuestion()"
+                                            disabled>←
+                                            Previous</button>
+                                        <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()">Next
+                                            →</button>
+                                        <button class="btn btn-success" id="btn-submit-quiz" onclick="submitQuiz()"
+                                            style="display:none;">Submit Quiz ✓</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quiz Results -->
+                        <div id="quiz-results" style="display:none;">
+                            <div class="quiz-container">
+                                <div class="glass-card quiz-results">
+                                    <div style="font-size:4rem;margin-bottom:1rem;" id="result-emoji">🎉</div>
+                                    <h2 class="result-score" id="result-score">0%</h2>
+                                    <p class="result-text" id="result-text">You scored 0 out of 0</p>
+                                    <div
+                                        style="display:flex;gap:1rem;justify-content:center;margin-top:1.5rem;flex-wrap:wrap;">
+                                        <button class="btn btn-primary" onclick="showQuizSelect()">Take Another
+                                            Quiz</button>
+                                        <button class="btn btn-secondary" onclick="showSection('history')">View
+                                            History</button>
+                                    </div>
+                                </div>
+                                <div class="section-header" style="margin-top:2rem;">
+                                    <h3 class="section-title">📝 Answer Review</h3>
+                                </div>
+                                <div id="answer-review"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ═══════ HISTORY ═══════ -->
+                    <div class="dashboard-section" id="section-history">
+                        <div class="page-header">
+                            <h1 class="page-title">Quiz History 📜</h1>
+                            <p class="page-subtitle">Track your past performances</p>
+                        </div>
+                        <div class="table-container-v4">
+                            <table class="data-table-v4">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Score</th>
+                                        <th>Percentage</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-body">
+                                    <tr>
+                                        <td colspan="4" class="empty-state">
+                                            <p>No quiz history yet</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ═══════ LIVE SESSIONS ═══════ -->
+                    <div class="dashboard-section" id="section-sessions">
+                        <div class="page-header">
+                            <h1 class="page-title">Live Sessions 🎥</h1>
+                            <p class="page-subtitle">Join live aptitude classes via Google Meet</p>
+                        </div>
+                        <div class="session-grid" id="sessions-grid">
+                            <div class="loading-overlay">
+                                <div class="spinner"></div>
+                                <p>Loading sessions...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ═══════ MESSAGES ═══════ -->
+                    <div class="dashboard-section" id="section-messages">
+                        <div class="page-header" style="text-align: left; margin-bottom: 2rem;">
+                            <h1 class="page-title"
+                                style="font-size: 2.5rem; font-weight: 800; text-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+                                Communication <span
+                                    style="background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Hub</span>
+                            </h1>
+                            <p class="page-subtitle"
+                                style="color: rgba(255, 255, 255, 0.7); text-shadow: 0 2px 5px rgba(0,0,0,0.5);">Message
+                                the
+                                Administrator or view campus-wide broadcasts.</p>
+                        </div>
+                        <div class="glass-card chat-container"
+                            style="max-width: 900px; padding: 0; background: rgba(35, 40, 60, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden;">
+                            <!-- Chat Header -->
+                            <div
+                                style="padding: 1.25rem 1.75rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; align-items: center; gap: 1rem; background: rgba(0,0,0,0.15);">
+                                <div
+                                    style="width: 38px; height: 38px; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);">
+                                    A</div>
+                                <div style="display: flex; flex-direction: column;">
+                                    <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: white;">Admin
+                                        Support
+                                    </h3>
+                                    <span
+                                        style="color: #10b981; font-size: 0.75rem; font-weight: 600; margin-top: 3px;">Official
+                                        Channel</span>
+                                </div>
+                            </div>
+
+                            <div class="chat-messages" id="chat-messages"
+                                style="height: 480px; flex-shrink: 0; padding: 2rem; display: flex; flex-direction: column; overflow-y: auto;">
+                                <div class="loading-overlay" id="chat-empty-state"
+                                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; opacity: 0.5;">
+                                    <div style="font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.4;">💬</div>
+                                    <p style="text-align: center;">No messages yet. Send a query to the administrator!
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="chat-input-area"
+                                style="padding: 1rem 1.5rem; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; gap: 0.75rem; align-items: center;">
+                                <div
+                                    style="flex: 1; display: flex; align-items: center; background: rgba(255, 255, 255, 0.05); border-radius: var(--radius-md); padding-left: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.05);">
+                                    <label class="file-input-label" title="Attach file"
+                                        style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: rgba(255,255,255,0.6);">
+                                        📎
+                                        <input type="file" id="chat-file" onchange="onFileSelect(this)"
+                                            style="display: none;">
+                                    </label>
+                                    <input type="text" class="form-input" id="chat-input"
+                                        placeholder="Type your message here..."
+                                        onkeypress="if(event.key==='Enter')sendMessage()"
+                                        style="border: none; background: transparent; padding: 1rem 0.5rem; flex: 1;">
+                                </div>
+                                <button class="btn btn-primary" onclick="sendMessage()"
+                                    style="border-radius: var(--radius-md); height: 48px; width: 64px; padding: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); border: none; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="color: white; transform: translateX(2px);">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="file-preview-area"
+                                style="padding:0.75rem 1.5rem; display:none; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.05);">
+                                <div class="file-preview"><span id="file-preview-name"></span><button
+                                        onclick="clearFile()">✕</button></div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+
+        </div> <!-- End #app -->
+
+        <script src="/js/common.js"></script>
+        <script src="/js/student.js"></script>
+        <script>
+            const { createApp } = Vue;
+            createApp({
+                setup() {
+                    return {};
+                }
+            }).mount('#app');
+        </script>
+</body>
+
+</html>

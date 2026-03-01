@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AptiLearn Master - Premium aptitude learning platform for students and educators">
+    <title>AptiLearn Master | Premium Online Courses</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Scripts for animations -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+</head>
+
+<body class="landing-page">
+    <div id="app">
+        <nav class="landing-navbar">
+            <div class="nav-brand">
+                <span style="font-size: 1.5rem; margin-right: 0.5rem;">🎓</span> AptiLearn
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="nav-auth">
+                <div class="theme-toggle-nav" onclick="toggleTheme()" title="Toggle Dark/Light Mode"
+                    style="margin-right: 1.5rem; cursor: pointer; font-size: 1.2rem;">
+                    <span id="theme-icon-nav">☀️</span>
+                </div>
+                <a href="/login" class="nav-login-link">Sign In</a>
+                <a href="/login?tab=register" class="btn btn-primary">Get Started</a>
+            </div>
+        </nav>
+
+        <section id="home" class="hero-section">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h4 class="hero-subtitle">UNLOCK YOUR POTENTIAL</h4>
+                <h1 class="hero-title">PREMIUM<br>ONLINE COURSES</h1>
+                <p class="hero-desc">Elevate Your Skills. Anytime. Anywhere.</p>
+                <a href="/login" class="btn btn-primary hero-btn">START LEARNING</a>
+            </div>
+        </section>
+
+        <section id="about" class="about-section landing-section">
+            <div class="container section-grid">
+                <div class="section-image-wrapper">
+                    <div class="image-glow-purple"></div>
+                    <img src="/images/about_learning.png" alt="Modern student learning in dark room"
+                        class="responsive-img rounded-img shadow-img hover-scale" />
+                </div>
+                <div class="section-text">
+                    <h2 class="section-title">About AptiLearn</h2>
+                    <div class="title-underline"></div>
+                    <p class="lead-text">Empowering students through high-quality, flexible, and data-driven online
+                        learning.</p>
+                    <p>Whether you're preparing for competitive aptitude exams, brushing up technical knowledge, or
+                        looking
+                        to master entirely new career skills, AptiLearn is meticulously built for you.</p>
+                    <p>Our premium platform features detailed progress tracking, curated question banks, and an engaging
+                        digital experience designed specifically to eliminate distractions and boost memory retention.
+                    </p>
+                    <a href="#services" class="btn btn-outline-secondary mt-1">Explore Features →</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="services-section landing-section glass-bg">
+            <div class="container">
+                <div class="center-text">
+                    <h2 class="section-title">Our Capabilities</h2>
+                    <div class="title-underline center-underline"></div>
+                    <p class="section-desc">Experience a new era of digital learning powered by optimized algorithms and
+                        deep analytics.</p>
+                </div>
+
+                <div class="services-grid mt-3">
+                    <div class="service-card hover-lift">
+                        <div class="service-img-wrapper">
+                            <img src="/images/desk_writing_bg.png" class="service-img" alt="Advanced Algorithms" />
+                        </div>
+                        <div class="service-content">
+                            <h3>Smart Quizzes</h3>
+                            <p>Adaptive difficulty that scales automatically with your growing aptitude skills.</p>
+                        </div>
+                    </div>
+
+                    <div class="service-card hover-lift">
+                        <div class="service-img-wrapper">
+                            <img src="/images/student_dash_banner.png" class="service-img" alt="Data Analytics" />
+                        </div>
+                        <div class="service-content">
+                            <h3>Real-time Analytics</h3>
+                            <p>Track your percentile, speed, and accuracy via the premium student dashboard.</p>
+                        </div>
+                    </div>
+
+                    <div class="service-card hover-lift">
+                        <div class="service-img-wrapper"
+                            style="background: linear-gradient(135deg, #1e1b4b, #312e81); display:flex; align-items:center; justify-content:center; height: 160px;">
+                            <span style="font-size: 3rem;">👥</span>
+                        </div>
+                        <div class="service-content">
+                            <h3>Live Sessions</h3>
+                            <p>Join interactive, real-time broadcasts taught by premium educators and verified experts.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="contact-section landing-section">
+            <div class="container section-grid">
+                <div class="section-text">
+                    <h2 class="section-title">Get In Touch</h2>
+                    <div class="title-underline"></div>
+                    <p>Have questions about our premium courses or enterprise solutions? Reach out to our dedicated
+                        support
+                        team directly.</p>
+                    <ul class="contact-details mt-2">
+                        <li><span class="icon">📧</span> support@aptilearn.master</li>
+                        <li><span class="icon">📞</span> +91 9025585083</li>
+                    </ul>
+                </div>
+                <div class="contact-form-wrapper">
+                    <form class="glass-card contact-form"
+                        onsubmit="event.preventDefault(); showToast('Message Sent Successfully!'); this.reset();">
+                        <h3 style="margin-bottom: 1.5rem;">Send a Message</h3>
+                        <div class="form-group">
+                            <input type="text" class="form-input" placeholder="Your Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" class="form-input" placeholder="Your Email" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea class="form-textarea" placeholder="How can we help?" required
+                                style="min-height: 100px;"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-gradient-v3 w-100" style="width: 100%;">Send
+                            Message</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <footer class="landing-footer">
+            <div class="container footer-content">
+                <div class="footer-brand">
+                    <span style="font-size: 1.5rem; margin-right: 0.5rem;">🎓</span> AptiLearn Master
+                    <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">Elevating skills.
+                        Worldwide.</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#home">Home</a>
+                    <a href="#about">About</a>
+                    <a href="#services">Services</a>
+                    <a href="/login">Login</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 AptiLearn Master. All rights reserved.</p>
+            </div>
+        </footer>
+
+    </div> <!-- End #app -->
+
+    <script src="/js/common.js"></script>
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            setup() {
+                return {};
+            }
+        }).mount('#app');
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
