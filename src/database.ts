@@ -16,7 +16,10 @@ if (process.env.VERCEL) {
 let db: SqlJsDatabase;
 
 export async function initializeDatabase(): Promise<SqlJsDatabase> {
-  const SQL = await initSqlJs();
+  const wasmPath = path.join(process.cwd(), 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm');
+  const SQL = await initSqlJs({
+    locateFile: (file) => file.endsWith('.wasm') ? wasmPath : file
+  });
 
   if (fs.existsSync(DB_PATH)) {
     const fileBuffer = fs.readFileSync(DB_PATH);

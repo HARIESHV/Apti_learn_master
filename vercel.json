@@ -1,12 +1,19 @@
 {
     "version": 2,
-    "builds": [
-        {
-            "src": "src/server.ts",
-            "use": "@vercel/node"
+    "functions": {
+        "src/server.ts": {
+            "includeFiles": [
+                "node_modules/sql.js/dist/sql-wasm.wasm",
+                "public/**",
+                "aptilearn.db"
+            ]
         }
-    ],
+    },
     "routes": [
+        {
+            "src": "/uploads/(.*)",
+            "dest": "/public/uploads/$1"
+        },
         {
             "src": "/(.*)",
             "dest": "src/server.ts"
