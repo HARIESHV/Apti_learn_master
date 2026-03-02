@@ -189,6 +189,8 @@ async function startNotificationPolling() {
                     if (n.type === 'message') icon = '💬';
                     else if (n.type === 'file' || n.type === 'quiz_file') icon = '📎';
                     else if (n.type === 'registration') icon = '👋';
+                    else if (n.type === 'session') icon = '🎥';
+                    else if (n.type === 'category' || n.type === 'question') icon = '🎯';
 
                     if (typeof showToast === 'function') {
                         showToast(`${icon} ${n.message}`, 'info', n.target_url);

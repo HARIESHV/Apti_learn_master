@@ -90,6 +90,9 @@ router.post('/categories', (req: AuthRequest, res: Response) => {
             [name, description || '', icon || '📚', time_limit || 0, access_type || 'lifetime', req.user!.id]
         );
         const lastId = (db.exec('SELECT last_insert_rowid() as id')[0].values[0][0]) as number;
+        // Notify students
+        db.run('INSERT INTO notifications (recipient_role, message, type, target_url) VALUES (?, ?, ?, ?)',
+            ['student', `New quiz category added: ${name}`, 'category', 'quiz']);
         dbModule.saveDatabase();
         res.status(201).json({ message: 'Category created', id: lastId });
     } catch (err: any) {
@@ -162,6 +165,9 @@ router.post('/questions', (req: AuthRequest, res: Response) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [category_id, subtopic_id || null, question_text, question_description || '', option_a, option_b, option_c, option_d, correct_answer, difficulty || 'medium', time_limit || 0, req.user!.id]);
         const lastId = (db.exec('SELECT last_insert_rowid() as id')[0].values[0][0]) as number;
+        // Notify students
+        db.run('INSERT INTO notifications (recipient_role, message, type, target_url) VALUES (?, ?, ?, ?)',
+            ['student', `New questions added to the platform!`, 'question', 'quiz']);
         dbModule.saveDatabase();
         res.status(201).json({ message: 'Question created', id: lastId });
     } catch (err) {

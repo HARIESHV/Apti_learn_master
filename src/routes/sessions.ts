@@ -18,6 +18,9 @@ router.post('/', authenticateToken, requireRole('admin'), (req: AuthRequest, res
             [title, meet_link, description || '', scheduled_at || null, req.user!.id]
         );
         const lastId = (db.exec('SELECT last_insert_rowid() as id')[0].values[0][0]) as number;
+        // Notify students
+        db.run('INSERT INTO notifications (recipient_role, message, type, target_url) VALUES (?, ?, ?, ?)',
+            ['student', `New live session: ${title}`, 'session', 'sessions']);
         dbModule.saveDatabase();
         res.status(201).json({ message: 'Live session created', id: lastId });
     } catch (err) {

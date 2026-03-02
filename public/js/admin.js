@@ -551,23 +551,23 @@ async function deleteStudent(id, name) {
 // ── SUBMISSIONS ──
 async function loadSubmissions() {
     try {
-        const res = await fetch(`${API_BASE} /admin/submissions`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')} ` } });
+        const res = await fetch(`${API_BASE}/admin/submissions`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
         const data = await res.json();
         const tbody = document.getElementById('submissions-body');
 
-        if (data.submissions.length === 0) {
+        if (!data.submissions || data.submissions.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><p>No submissions found.</p></td></tr>';
             return;
         }
 
         tbody.innerHTML = data.submissions.map(sub => `
-        < tr >
+            <tr>
                 <td><strong>${sub.student_name}</strong></td>
                 <td><span class="badge badge-score-mid">${sub.category_name}</span></td>
                 <td><div style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${sub.question_text}">${sub.question_text}</div></td>
                 <td><a href="${sub.file_path}" target="_blank" class="btn btn-sm" style="background: rgba(139, 92, 246, 0.2); color: var(--primary-light); text-decoration: none;">Download File 📥</a></td>
                 <td style="color:var(--text-muted); font-size: 0.85rem;">${formatISTDate(sub.completed_at)}</td>
-            </tr >
+            </tr>
         `).join('');
     } catch (err) {
         document.getElementById('submissions-body').innerHTML = '<tr><td colspan="5" class="empty-state"><p>Error loading submissions.</p></td></tr>';
@@ -579,15 +579,15 @@ function openSessionModal() { document.getElementById('session-modal').classList
 function closeSessionModal() { document.getElementById('session-modal').classList.remove('active'); }
 
 async function loadSessions() {
-    const res = await fetch(`${API_BASE} /sessions/admin`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')} ` } });
+    const res = await fetch(`${API_BASE}/sessions/admin`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
     const data = await res.json();
     const grid = document.getElementById('sessions-grid');
-    if (data.sessions.length === 0) {
+    if (!data.sessions || data.sessions.length === 0) {
         grid.innerHTML = '<div class="glass-card" style="grid-column: 1/-1; padding: 3rem; text-align: center;"><p>No live sessions created yet.</p></div>';
         return;
     }
     grid.innerHTML = data.sessions.map(s => `
-        < div class="glass-card session-card ${s.is_active ? 'is-live' : ''}" style = "border-top: 3px solid ${s.is_active ? '#10b981' : 'var(--border)'}; padding: 1.5rem;" >
+        <div class="glass-card session-card ${s.is_active ? 'is-live' : ''}" style="border-top: 3px solid ${s.is_active ? '#10b981' : 'var(--border)'}; padding: 1.5rem;">
             <div style="margin-bottom: 1rem;"><span class="badge-pill ${s.is_active ? 'success' : 'warning'}" style="font-weight: 700; font-size: 0.7rem; padding: 0.3rem 0.6rem;">${s.is_active ? '● ACTIVE' : 'ENDED'}</span></div>
             <h4 class="session-title" style="font-size: 1.1rem; font-weight: 700; color: white;">${s.title}</h4>
             <p class="session-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">${s.description || 'No description provided.'}</p>
@@ -599,7 +599,7 @@ async function loadSessions() {
                 <button class="btn btn-sm btn-secondary" onclick="toggleSession(${s.id})" style="padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600;">${s.is_active ? 'Stop' : 'Start'}</button>
                 <button class="btn btn-sm btn-danger" onclick="deleteSession(${s.id})" style="padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600;">Del</button>
             </div>
-        </div >
+        </div>
         `).join('');
 }
 
