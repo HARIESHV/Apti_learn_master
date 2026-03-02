@@ -92,15 +92,27 @@ createApp({
             }
         };
 
-        const checkAuth = () => {
+        const checkAuth = async () => {
             const token = localStorage.getItem('token');
             const user = localStorage.getItem('user');
             if (token && user) {
                 try {
-                    const userData = JSON.parse(user);
-                    window.location.href = userData.role === 'admin' ? '/admin' : '/student';
+                    // Verify token is still valid before auto-redirect
+                    const res = await fetch('/api/auth/me', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const userData = JSON.parse(user);
+                        window.location.href = userData.role === 'admin' ? '/admin' : '/student';
+                    } else {
+                        // Token expired or invalid — clear and let user log in fresh
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                    }
                 } catch (e) {
-                    localStorage.clear();
+                    // Server unreachable — clear stale data
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
                 }
             }
         };

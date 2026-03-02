@@ -48,6 +48,16 @@ async function seed() {
         console.log('✅ Admin user created (username: admin, password: admin123)');
     } catch (e) {
         console.log('ℹ️  Admin user already exists');
+        // Check if password needs reset to 'admin123'
+        const existingAdmin = getOne("SELECT * FROM users WHERE username = 'admin'");
+        if (existingAdmin) {
+            const match = await bcrypt.compare('admin123', existingAdmin.password_hash);
+            if (!match) {
+                console.log('🔄 Resetting admin password to "admin123"...');
+                db.run('UPDATE users SET password_hash = ? WHERE username = ?', [adminPassword, 'admin']);
+                dbModule.saveDatabase();
+            }
+        }
     }
 
     // Create sample students
