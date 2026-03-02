@@ -192,7 +192,22 @@ router.put('/questions/:id', (req: AuthRequest, res: Response) => {
     }
 });
 
-// DELETE /api/admin/questions/:id
+// DELETE /api/admin/questions/all  <-- MUST be BEFORE /:id to avoid route conflict
+router.delete('/questions/all', (req: AuthRequest, res: Response) => {
+    try {
+        const db = dbModule.getDb();
+        db.run('DELETE FROM attempt_answers');
+        db.run('DELETE FROM questions');
+        dbModule.saveDatabase();
+        console.log('[Admin] All questions cleared by:', req.user!.username);
+        res.json({ message: 'All questions cleared successfully' });
+    } catch (err) {
+        console.error('Clear questions error:', err);
+        res.status(500).json({ error: 'Failed to clear questions' });
+    }
+});
+
+// DELETE /api/admin/questions/:id  <-- MUST be AFTER /all
 router.delete('/questions/:id', (req: AuthRequest, res: Response) => {
     try {
         const db = dbModule.getDb();
@@ -229,13 +244,10 @@ router.delete('/students/:id', (req: AuthRequest, res: Response) => {
         const studentId = parseInt(req.params.id as string);
         const db = dbModule.getDb();
 
-        // Delete related data first (since we don't have CASCADE on all tables yet)
         db.run('DELETE FROM attempt_answers WHERE attempt_id IN (SELECT id FROM quiz_attempts WHERE student_id = ?)', [studentId]);
         db.run('DELETE FROM quiz_attempts WHERE student_id = ?', [studentId]);
         db.run('DELETE FROM messages WHERE sender_id = ? OR recipient_id = ?', [studentId, studentId]);
         db.run('DELETE FROM notifications WHERE recipient_id = ?', [studentId]);
-
-        // Delete the user
         db.run('DELETE FROM users WHERE id = ? AND role = "student"', [studentId]);
 
         dbModule.saveDatabase();
@@ -246,37 +258,24 @@ router.delete('/students/:id', (req: AuthRequest, res: Response) => {
     }
 });
 
-// DELETE /api/admin/questions/all
-router.delete('/questions/all', (req: AuthRequest, res: Response) => {
+// GET /api/admin/leaderboard -- Admin-accessible leaderboard (avoids student-role restriction)
+router.get('/leaderboard', (req: AuthRequest, res: Response) => {
     try {
-        const db = dbModule.getDb();
-        // Delete all question answers and then questions
-        db.run('DELETE FROM attempt_answers');
-        db.run('DELETE FROM questions');
-        dbModule.saveDatabase();
-        res.json({ message: 'All questions cleared successfully' });
-    } catch (err) {
-        console.error('Clear questions error:', err);
-        res.status(500).json({ error: 'Failed to clear questions' });
-    }
-});
-
-// GET /api/admin/submissions
-router.get('/submissions', (req: AuthRequest, res: Response) => {
-    try {
-        const submissions = getAll(`
-      SELECT aa.id, u.full_name as student_name, c.name as category_name, q.question_text, aa.uploaded_file as file_path, qa.completed_at
-      FROM attempt_answers aa
-      JOIN quiz_attempts qa ON aa.attempt_id = qa.id
-      JOIN users u ON qa.student_id = u.id
-      JOIN questions q ON aa.question_id = q.id
-      JOIN categories c ON qa.category_id = c.id
-      WHERE aa.uploaded_file IS NOT NULL AND aa.uploaded_file != ''
-      ORDER BY qa.completed_at DESC
+        const leaderboard = getAll(`
+      SELECT u.full_name, u.username,
+             COUNT(qa.id) as total_quizzes,
+             ROUND(AVG(CAST(qa.score AS FLOAT) / qa.total_questions * 100), 1) as avg_score,
+             SUM(qa.score) as total_score
+      FROM users u
+      JOIN quiz_attempts qa ON u.id = qa.student_id
+      WHERE u.role = 'student' AND qa.completed_at IS NOT NULL
+      GROUP BY u.id
+      ORDER BY avg_score DESC, total_score DESC
+      LIMIT 20
     `);
-        res.json({ submissions });
+        res.json({ leaderboard });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch submissions' });
+        res.status(500).json({ error: 'Failed to fetch leaderboard' });
     }
 });
 

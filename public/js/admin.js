@@ -475,7 +475,7 @@ async function deleteSubtopic(id) {
 async function loadLeaderboard() {
     const grid = document.getElementById('leaderboard-list');
     try {
-        const response = await fetch(`${API_BASE}/student/leaderboard`, {
+        const response = await fetch(`${API_BASE}/admin/leaderboard`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         const data = await response.json();
