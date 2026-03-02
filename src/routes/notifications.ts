@@ -40,7 +40,7 @@ router.post('/read-all', (req: AuthRequest, res: Response) => {
               AND is_read = 0
         `, [role, userId]);
 
-        dbModule.saveDatabase();
+        dbModule.saveDatabaseAsync();
         res.json({ success: true });
     } catch (err) {
         console.error('Failed to mark notifications read:', err);
