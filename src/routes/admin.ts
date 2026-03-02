@@ -137,10 +137,9 @@ router.get('/questions', (req: AuthRequest, res: Response) => {
     try {
         const { category_id } = req.query;
         let sql = `
-            SELECT q.*, c.name as category_name, s.name as subtopic_name 
+            SELECT q.*, c.name as category_name, q.subtopic_name
             FROM questions q 
             JOIN categories c ON q.category_id = c.id
-            LEFT JOIN subtopics s ON q.subtopic_id = s.id
         `;
         const params: any[] = [];
         if (category_id) { sql += ' WHERE q.category_id = ?'; params.push(parseInt(category_id as string)); }
@@ -155,15 +154,15 @@ router.get('/questions', (req: AuthRequest, res: Response) => {
 // POST /api/admin/questions
 router.post('/questions', (req: AuthRequest, res: Response) => {
     try {
-        const { category_id, subtopic_id, question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, time_limit } = req.body;
+        const { category_id, subtopic_name, question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, time_limit } = req.body;
         if (!category_id || !question_text || !option_a || !option_b || !option_c || !option_d || !correct_answer) {
             res.status(400).json({ error: 'All fields are required' }); return;
         }
         const db = dbModule.getDb();
         db.run(`
-      INSERT INTO questions (category_id, subtopic_id, question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, time_limit, created_by)
+      INSERT INTO questions (category_id, subtopic_name, question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, time_limit, created_by)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [category_id, subtopic_id || null, question_text, question_description || '', option_a, option_b, option_c, option_d, correct_answer, difficulty || 'medium', time_limit || 0, req.user!.id]);
+    `, [category_id, subtopic_name || '', question_text, question_description || '', option_a, option_b, option_c, option_d, correct_answer, difficulty || 'medium', time_limit || 0, req.user!.id]);
         const lastId = (db.exec('SELECT last_insert_rowid() as id')[0].values[0][0]) as number;
         // Notify students
         db.run('INSERT INTO notifications (recipient_role, message, type, target_url) VALUES (?, ?, ?, ?)',
@@ -179,12 +178,12 @@ router.post('/questions', (req: AuthRequest, res: Response) => {
 // PUT /api/admin/questions/:id
 router.put('/questions/:id', (req: AuthRequest, res: Response) => {
     try {
-        const { question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, category_id, subtopic_id, time_limit } = req.body;
+        const { question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, category_id, subtopic_name, time_limit } = req.body;
         const db = dbModule.getDb();
         db.run(`
       UPDATE questions SET question_text = ?, question_description = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?,
-      correct_answer = ?, difficulty = ?, time_limit = ?, category_id = ?, subtopic_id = ? WHERE id = ?
-    `, [question_text, question_description || '', option_a, option_b, option_c, option_d, correct_answer, difficulty, time_limit || 0, category_id, subtopic_id || null, parseInt(req.params.id as string)]);
+      correct_answer = ?, difficulty = ?, time_limit = ?, category_id = ?, subtopic_name = ? WHERE id = ?
+    `, [question_text, question_description || '', option_a, option_b, option_c, option_d, correct_answer, difficulty, time_limit || 0, category_id, subtopic_name || '', parseInt(req.params.id as string)]);
         dbModule.saveDatabase();
         res.json({ message: 'Question updated' });
     } catch (err) {

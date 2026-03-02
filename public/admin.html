@@ -46,10 +46,7 @@
                     </a>
 
                     <div class="menu-label">Management</div>
-                    <a class="menu-link" data-section="categories" onclick="showSection('categories')">
-                        <span class="menu-icon">📁</span>
-                        <span class="menu-text">Categories</span>
-                    </a>
+
                     <a class="menu-link" data-section="questions" onclick="showSection('questions')">
                         <span class="menu-icon">❓</span>
                         <span class="menu-text">Questions</span>
@@ -61,10 +58,6 @@
                     <a class="menu-link" data-section="submissions" onclick="showSection('submissions')">
                         <span class="menu-icon">📥</span>
                         <span class="menu-text">Submissions</span>
-                    </a>
-                    <a class="menu-link" data-section="subtopics" onclick="showSection('subtopics')">
-                        <span class="menu-icon">📌</span>
-                        <span class="menu-text">Subtopics</span>
                     </a>
 
                     <div class="menu-label">Engagement</div>
@@ -240,40 +233,6 @@
                         </div>
                     </div>
 
-                    <!-- ═══════ CATEGORIES ═══════ -->
-                    <div class="dashboard-section" id="section-categories">
-                        <div class="page-header">
-                            <h1 class="page-title">Manage Categories</h1>
-                            <p class="page-subtitle">Create and manage quiz categories with time limits and access types
-                            </p>
-                        </div>
-                        <div class="section-header">
-                            <h3 class="section-title">📁 All Categories</h3>
-                            <button class="btn btn-primary" onclick="openCategoryModal()">+ Add Category</button>
-                        </div>
-                        <div class="table-container-v4">
-                            <table class="data-table-v4">
-                                <thead>
-                                    <tr>
-                                        <th>Icon</th>
-                                        <th>Name</th>
-                                        <th>Description</th>
-                                        <th>Questions</th>
-                                        <th>Time Limit</th>
-                                        <th>Access</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="categories-body">
-                                    <tr>
-                                        <td colspan="7" class="empty-state">
-                                            <p>No categories yet</p>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
 
                     <!-- ═══════ QUESTIONS ═══════ -->
                     <div class="dashboard-section" id="section-questions">
@@ -375,74 +334,6 @@
                         </div>
                     </div>
 
-                    <!-- ═══════ SUBTOPICS ═══════ -->
-                    <div class="dashboard-section" id="section-subtopics">
-                        <div class="page-header">
-                            <h1 class="page-title">Manage Subtopics 📌</h1>
-                            <p class="page-subtitle">Organize questions into subtopics within each category</p>
-                        </div>
-
-                        <!-- Add Subtopic Form -->
-                        <div class="glass-card" style="padding: 2rem; margin-bottom: 2rem;">
-                            <h3 class="section-title" style="margin-bottom: 1.5rem;">➕ Add New Subtopic</h3>
-                            <form id="subtopic-form"
-                                style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
-                                <div class="form-group" style="flex:1; min-width: 200px; margin-bottom: 0;">
-                                    <label class="form-label">Category *</label>
-                                    <select class="form-select" id="st-category" required>
-                                        <option value="">Select Category</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="flex:2; min-width: 250px; margin-bottom: 0;">
-                                    <label class="form-label">Subtopic Name *</label>
-                                    <input type="text" class="form-input" id="st-name" placeholder="e.g. HCF & LCM"
-                                        required>
-                                </div>
-                                <div class="form-group" style="flex:2; min-width: 200px; margin-bottom: 0;">
-                                    <label class="form-label">Description</label>
-                                    <input type="text" class="form-input" id="st-desc"
-                                        placeholder="Brief description...">
-                                </div>
-                                <div class="form-group" style="width: 80px; margin-bottom: 0;">
-                                    <label class="form-label">Icon</label>
-                                    <input type="text" class="form-input" id="st-icon" value="📌"
-                                        style="text-align:center;">
-                                </div>
-                                <button type="submit" class="btn btn-primary"
-                                    style="height: fit-content; padding: 1rem 2rem;">Add</button>
-                            </form>
-                        </div>
-
-                        <!-- Filter by Category -->
-                        <div class="section-header">
-                            <h3 class="section-title">📋 All Subtopics</h3>
-                            <select class="form-select" id="filter-subtopic-category" onchange="loadSubtopics()"
-                                style="width:auto;min-width:200px;">
-                                <option value="">All Categories</option>
-                            </select>
-                        </div>
-
-                        <div class="table-container-v4">
-                            <table class="data-table-v4">
-                                <thead>
-                                    <tr>
-                                        <th>Icon</th>
-                                        <th>Subtopic</th>
-                                        <th>Category</th>
-                                        <th>Description</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="subtopics-body">
-                                    <tr>
-                                        <td colspan="5" class="empty-state">
-                                            <p>No subtopics added yet</p>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
 
                     <!-- ═══════ LEADERBOARD ═══════ -->
                     <div class="dashboard-section" id="section-leaderboard">
@@ -598,40 +489,6 @@
                 </main>
             </div>
 
-            <!-- Category Modal -->
-            <div class="modal-overlay" id="category-modal">
-                <div class="glass-card modal">
-                    <div class="modal-header">
-                        <h3 class="modal-title" id="cat-modal-title">Add New Category</h3><button class="modal-close"
-                            onclick="closeCategoryModal()">✕</button>
-                    </div>
-                    <form id="category-form">
-                        <input type="hidden" id="cat-edit-id">
-                        <div class="form-group"><label class="form-label">Category Name *</label><input type="text"
-                                class="form-input" id="cat-name" placeholder="e.g. Quantitative Aptitude" required>
-                        </div>
-                        <div class="form-group"><label class="form-label">Description</label><textarea
-                                class="form-textarea" id="cat-description"
-                                placeholder="Describe this category..."></textarea></div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
-                            <div class="form-group"><label class="form-label">Icon</label><input type="text"
-                                    class="form-input" id="cat-icon" placeholder="📚" value="📚" maxlength="4"></div>
-                            <div class="form-group"><label class="form-label">Time Limit (min)</label><input
-                                    type="number" class="form-input" id="cat-time-limit" placeholder="0 = none" min="0"
-                                    value="0"></div>
-                            <div class="form-group"><label class="form-label">Access Type</label>
-                                <select class="form-select" id="cat-access-type">
-                                    <option value="lifetime">♾️ Lifetime</option>
-                                    <option value="limited">⏳ Limited</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="modal-footer"><button type="button" class="btn btn-secondary"
-                                onclick="closeCategoryModal()">Cancel</button><button type="submit"
-                                class="btn btn-primary" id="cat-submit-btn">Create Category</button></div>
-                    </form>
-                </div>
-            </div>
 
             <!-- Question Modal -->
             <div class="modal-overlay" id="question-modal">

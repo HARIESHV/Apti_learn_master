@@ -87,14 +87,13 @@ function triggerSectionLoad(sectionId) {
     if (sectionId === 'overview') {
         if (window.refreshDashboardStats) window.refreshDashboardStats();
     }
-    if (sectionId === 'categories') loadCategories();
     if (sectionId === 'questions') { loadCategoriesForFilter(); loadQuestions(); }
     if (sectionId === 'students') loadStudents();
     if (sectionId === 'sessions') loadSessions();
     if (sectionId === 'messages') { loadStudentChats(); loadMessages(); }
     if (sectionId === 'leaderboard') loadLeaderboard();
     if (sectionId === 'submissions') loadSubmissions();
-    if (sectionId === 'subtopics') { loadCategoriesForFilter(); loadSubtopics(); }
+    if (sectionId === 'subtopics') { loadCategoriesForFilter(); }
 }
 
 function toggleSidebar() {
@@ -167,105 +166,16 @@ function populateRecentAttempts(recentAttempts) {
     `).join('');
 }
 
-// ── CATEGORIES ──
-async function loadCategories() {
-    const response = await fetch(`${API_BASE}/admin/categories`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    });
-    const data = await response.json();
-    const tbody = document.getElementById('categories-body');
-    tbody.innerHTML = data.categories.map(cat => `
-        <tr>
-            <td style="font-size: 1.5rem;">${cat.icon}</td>
-            <td><strong>${cat.name}</strong></td>
-            <td>${cat.description || '-'}</td>
-            <td>${cat.question_count}</td>
-            <td>${cat.time_limit > 0 ? cat.time_limit + ' min' : '<span class="badge-pill" style="background: rgba(99,102,241,0.1); color: var(--brand-indigo)">No Limit</span>'}</td>
-            <td><span class="badge-pill ${cat.access_type === 'lifetime' ? 'success' : 'warning'}">${cat.access_type}</span></td>
-            <td>
-                <div style="display:flex; gap: 0.5rem;">
-                    <button class="btn btn-sm btn-secondary" onclick="editCategory(${JSON.stringify(cat).replace(/"/g, '&quot;')})">Edit</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteCategory(${cat.id})">Delete</button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function openCategoryModal() {
-    document.getElementById('cat-modal-title').textContent = 'Add New Category';
-    document.getElementById('cat-edit-id').value = '';
-    document.getElementById('category-form').reset();
-    document.getElementById('category-modal').classList.add('active');
-}
-
-function closeCategoryModal() { document.getElementById('category-modal').classList.remove('active'); }
-
-function editCategory(cat) {
-    document.getElementById('cat-modal-title').textContent = 'Edit Category';
-    document.getElementById('cat-edit-id').value = cat.id;
-    document.getElementById('cat-name').value = cat.name;
-    document.getElementById('cat-description').value = cat.description;
-    document.getElementById('cat-icon').value = cat.icon;
-    document.getElementById('cat-time-limit').value = cat.time_limit;
-    document.getElementById('cat-access-type').value = cat.access_type;
-    document.getElementById('category-modal').classList.add('active');
-}
-
-document.getElementById('category-form').onsubmit = async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('cat-edit-id').value;
-    const body = {
-        name: document.getElementById('cat-name').value,
-        description: document.getElementById('cat-description').value,
-        icon: document.getElementById('cat-icon').value,
-        time_limit: parseInt(document.getElementById('cat-time-limit').value),
-        access_type: document.getElementById('cat-access-type').value
-    };
-
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `${API_BASE}/admin/categories/${id}` : `${API_BASE}/admin/categories`;
-
-    const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-        body: JSON.stringify(body)
-    });
-
-    if (res.ok) {
-        if (typeof playNotificationSound === 'function') playNotificationSound(true);
-        showToast(id ? 'Category updated' : 'Category created');
-        closeCategoryModal();
-        loadCategories();
-    } else {
-        const d = await res.json();
-        showToast(d.error || 'Failed to save', 'error');
-    }
-};
-
-async function deleteCategory(id) {
-    if (!confirm('Are you sure? All questions in this category will be deleted.')) return;
-    const res = await fetch(`${API_BASE}/admin/categories/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    });
-    if (res.ok) { showToast('Category deleted'); loadCategories(); }
-}
-
 // ── QUESTIONS ──
 async function loadCategoriesForFilter() {
     const res = await fetch(`${API_BASE}/admin/categories`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
     const data = await res.json();
     const filter = document.getElementById('filter-category');
     const select = document.getElementById('q-category');
-    const subtopicFilter = document.getElementById('filter-subtopic-category');
-    const subtopicSelect = document.getElementById('st-category');
-    const opts = data.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    const opts = data.categories.map(c => `<option value="${c.id}" data-name="${c.name}">${c.name}</option>`).join('');
 
     if (filter) filter.innerHTML = '<option value="">All Categories</option>' + opts;
-    if (select) select.innerHTML = '<option value="">Select Category</option>' + opts;
-    if (subtopicFilter) subtopicFilter.innerHTML = '<option value="">All Categories</option>' + opts;
-    if (subtopicSelect) subtopicSelect.innerHTML = '<option value="">Select Category</option>' + opts;
+    if (select) select.innerHTML = '<option value="">— Select a Topic —</option>' + opts;
 }
 
 async function loadQuestions() {
@@ -310,12 +220,16 @@ function openQuestionModal() {
 
 function closeQuestionModal() { document.getElementById('question-modal').classList.remove('active'); }
 
-async function editQuestion(q) {
+function editQuestion(q) {
     document.getElementById('question-modal-title').textContent = 'Edit Question';
     document.getElementById('q-edit-id').value = q.id;
     document.getElementById('q-category').value = q.category_id;
-    await loadSubtopicsForQuestionForm(q.category_id);
-    document.getElementById('q-subtopic').value = q.subtopic_id || '';
+    loadSubtopicsForQuestionForm(q.category_id);
+    // After populating, set the stored subtopic name as selected value
+    setTimeout(() => {
+        const sel = document.getElementById('q-subtopic');
+        sel.value = q.subtopic_name || '';
+    }, 0);
     document.getElementById('q-text').value = q.question_text;
     document.getElementById('q-option-a').value = q.option_a;
     document.getElementById('q-option-b').value = q.option_b;
@@ -347,7 +261,7 @@ document.getElementById('question-form').onsubmit = async (e) => {
         option_d: document.getElementById('q-option-d').value,
         correct_answer: document.getElementById('q-correct').value,
         difficulty: document.getElementById('q-difficulty').value,
-        subtopic_id: document.getElementById('q-subtopic').value || null,
+        subtopic_name: document.getElementById('q-subtopic').value || '',
         time_limit: (parseInt(document.getElementById('q-time-days').value) || 0) * 86400 +
             (parseInt(document.getElementById('q-time-hours').value) || 0) * 3600 +
             (parseInt(document.getElementById('q-time-mins').value) || 0) * 60 +
@@ -401,93 +315,74 @@ async function clearAllQuestions() {
         showToast('Error clearing questions', 'error');
     }
 }
-// ── SUBTOPICS ──
-async function loadSubtopics() {
-    const catId = document.getElementById('filter-subtopic-category').value;
-    const url = `${API_BASE}/admin/subtopics${catId ? '?category_id=' + catId : ''}`;
-    try {
-        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
-        const data = await res.json();
-        const tbody = document.getElementById('subtopics-body');
+// ── SUBTOPICS (hardcoded per category name, auto-populated in question form) ──
 
-        if (!data.subtopics || data.subtopics.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><p>No subtopics found</p></td></tr>';
-            return;
-        }
+// Maps category names (case-insensitive, trimmed) to their subtopic lists
+const SUBTOPICS_MAP = {
+    'quantitative aptitude': [
+        // Arithmetic
+        'Number System', 'HCF & LCM', 'Simplification', 'Percentage',
+        'Profit & Loss', 'Simple Interest & Compound Interest', 'Ratio & Proportion',
+        'Average', 'Time & Work', 'Pipes & Cisterns', 'Time, Speed & Distance',
+        'Boats & Streams', 'Mixture & Alligation',
+        // Algebra
+        'Linear Equations', 'Quadratic Equations', 'Polynomials', 'Inequalities', 'Functions & Graphs',
+        // Geometry
+        'Lines & Angles', 'Triangles', 'Quadrilaterals', 'Circles', 'Polygons',
+        // Mensuration
+        'Area & Perimeter (2D)', 'Surface Area & Volume (3D)',
+        // Trigonometry
+        'Basic Trigonometric Ratios', 'Identities', 'Heights & Distances',
+        // Permutation & Combination
+        'Fundamental Counting Principle', 'Permutations', 'Combinations',
+        // Probability
+        'Basic Probability', 'Conditional Probability',
+        // Data Interpretation
+        'Tables', 'Bar Graphs', 'Line Graphs', 'Pie Charts', 'Caselets'
+    ],
+    'logical reasoning': [
+        'Number Series', 'Letter Series', 'Coding–Decoding', 'Blood Relations',
+        'Direction Sense', 'Syllogisms', 'Venn Diagrams', 'Seating Arrangement',
+        'Puzzles', 'Analogies', 'Clocks & Calendars'
+    ],
+    'verbal ability': [
+        'Reading Comprehension', 'Vocabulary (Synonyms, Antonyms)', 'Sentence Correction',
+        'Error Spotting', 'Fill in the Blanks', 'Para Jumbles',
+        'Active & Passive Voice', 'Direct & Indirect Speech'
+    ],
+    'placement / company focused': [
+        'Quant + Reasoning Mixed Problems', 'Time-based Calculation Questions',
+        'Data Sufficiency', 'Logical Puzzles'
+    ]
+};
 
-        tbody.innerHTML = data.subtopics.map(st => `
-            <tr>
-                <td style="font-size: 1.5rem;">${st.icon}</td>
-                <td><strong>${st.name}</strong></td>
-                <td><span class="badge badge-medium">${st.category_name}</span></td>
-                <td>${st.description || '-'}</td>
-                <td>
-                    <button class="btn btn-sm btn-danger" onclick="deleteSubtopic(${st.id})">Delete</button>
-                </td>
-            </tr>
-        `).join('');
-    } catch (err) { console.error('Error loading subtopics:', err); }
-}
-
-async function loadSubtopicsForQuestionForm(categoryId) {
+function loadSubtopicsForQuestionForm(categoryId) {
     const select = document.getElementById('q-subtopic');
     if (!categoryId) {
         select.innerHTML = '<option value="">— Select a Subtopic —</option>';
         return;
     }
-    try {
-        const res = await fetch(`${API_BASE}/admin/subtopics?category_id=${categoryId}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        const data = await res.json();
-        const opts = (data.subtopics || []).map(st => `<option value="${st.id}">${st.name}</option>`).join('');
+
+    // Get the category name from the selected option
+    const catSelect = document.getElementById('q-category');
+    const selectedOption = catSelect.options[catSelect.selectedIndex];
+    const catName = (selectedOption ? selectedOption.text : '').toLowerCase().trim();
+
+    // Try exact match first, then partial match
+    let subtopics = SUBTOPICS_MAP[catName];
+    if (!subtopics) {
+        // Try partial match (e.g. category created with slightly different casing)
+        const matchedKey = Object.keys(SUBTOPICS_MAP).find(key =>
+            catName.includes(key) || key.includes(catName)
+        );
+        subtopics = matchedKey ? SUBTOPICS_MAP[matchedKey] : [];
+    }
+
+    if (subtopics && subtopics.length > 0) {
+        const opts = subtopics.map(st => `<option value="${st}">${st}</option>`).join('');
         select.innerHTML = '<option value="">— Select a Subtopic (Optional) —</option>' + opts;
-    } catch (err) {
-        select.innerHTML = '<option value="">— Select a Subtopic —</option>';
-    }
-}
-
-document.getElementById('subtopic-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const body = {
-        category_id: document.getElementById('st-category').value,
-        name: document.getElementById('st-name').value,
-        description: document.getElementById('st-desc').value,
-        icon: document.getElementById('st-icon').value
-    };
-
-    const res = await fetch(`${API_BASE}/admin/subtopics`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(body)
-    });
-
-    if (res.ok) {
-        showToast('Subtopic created!');
-        document.getElementById('subtopic-form').reset();
-        loadSubtopics();
     } else {
-        const err = await res.json();
-        showToast(err.error || 'Failed to create subtopic', 'error');
-    }
-});
-
-async function deleteSubtopic(id) {
-    if (!confirm('Are you sure you want to delete this subtopic? Questions linked to it will not be deleted, but they will lose the subtopic tag.')) return;
-
-    const res = await fetch(`${API_BASE}/admin/subtopics/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    });
-
-    if (res.ok) {
-        showToast('Subtopic deleted!');
-        loadSubtopics();
-    } else {
-        showToast('Failed to delete subtopic', 'error');
+        select.innerHTML = '<option value="">— No subtopics for this category —</option>';
     }
 }
 
