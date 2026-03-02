@@ -30,9 +30,27 @@ async function loadUserData() {
         const response = await fetch(`${API_BASE}/auth/me`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
-        if (!response.ok) throw new Error('Auth failed');
+
+        // Only logout on actual auth errors (token invalid/expired)
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+            return;
+        }
+        if (!response.ok) {
+            console.warn('Could not load user data, server error:', response.status);
+            return;
+        }
+
         const data = await response.json();
         currentUser = data.user;
+
+        // Role guard — only admins allowed here
+        if (currentUser.role !== 'admin') {
+            window.location.href = '/student';
+            return;
+        }
 
         // Populate Top Navbar Profile
         document.getElementById('nav-name').textContent = currentUser.full_name;
@@ -42,7 +60,8 @@ async function loadUserData() {
         document.getElementById('side-name').textContent = currentUser.full_name;
         document.getElementById('side-avatar').textContent = currentUser.full_name.charAt(0);
     } catch (err) {
-        logout();
+        // Network error — don't logout, server might be starting up
+        console.warn('Network error loading user data:', err.message);
     }
 }
 
