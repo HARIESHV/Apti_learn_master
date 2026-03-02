@@ -72,14 +72,14 @@ router.post('/', upload.single('file'), (req: AuthRequest, res: Response) => {
 
         // Notify
         if (isBroadcast) {
-            db.run('INSERT INTO notifications (recipient_role, message, type) VALUES (?, ?, ?)',
-                ['student', `New announcement from ${sender?.full_name || 'Admin'}`, file ? 'file' : 'message']);
+            db.run('INSERT INTO notifications (recipient_role, message, type, target_url) VALUES (?, ?, ?, ?)',
+                ['student', `New announcement from ${sender?.full_name || 'Admin'}`, file ? 'file' : 'message', 'messages']);
         } else if (recipient_id && isAdmin) {
-            db.run('INSERT INTO notifications (recipient_role, recipient_id, message, type) VALUES (?, ?, ?, ?)',
-                ['student', parseInt(recipient_id), `New message from ${sender?.full_name || 'Admin'}`, file ? 'file' : 'message']);
+            db.run('INSERT INTO notifications (recipient_role, recipient_id, message, type, target_url) VALUES (?, ?, ?, ?, ?)',
+                ['student', parseInt(recipient_id), `New message from ${sender?.full_name || 'Admin'}`, file ? 'file' : 'message', 'messages']);
         } else if (!isAdmin) {
-            db.run('INSERT INTO notifications (recipient_role, message, type) VALUES (?, ?, ?)',
-                ['admin', `New message from ${sender?.full_name || 'Student'}`, file ? 'file' : 'message']);
+            db.run('INSERT INTO notifications (recipient_role, message, type, target_url) VALUES (?, ?, ?, ?)',
+                ['admin', `New message from ${sender?.full_name || 'Student'}`, file ? 'file' : 'message', 'messages']);
         }
 
         dbModule.saveDatabase();

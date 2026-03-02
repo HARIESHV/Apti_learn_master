@@ -172,8 +172,8 @@ router.post('/quiz/upload', upload.single('file'), (req: AuthRequest, res: Respo
         }
 
         const db = dbModule.getDb();
-        db.run('INSERT INTO notifications (recipient_role, message, type) VALUES (?, ?, ?)',
-            ['admin', `Student ${req.user!.username} uploaded a file for review: ${req.file.originalname}`, 'quiz_file']);
+        db.run('INSERT INTO notifications (recipient_role, message, type, target_url) VALUES (?, ?, ?, ?)',
+            ['admin', `Student ${req.user!.username} uploaded a file for review: ${req.file.originalname}`, 'quiz_file', 'submissions']);
         dbModule.saveDatabase();
 
         res.json({

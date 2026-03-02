@@ -149,6 +149,7 @@ export async function initializeDatabase(): Promise<SqlJsDatabase> {
         recipient_id INTEGER DEFAULT NULL, -- NULL means all of that role
         message TEXT NOT NULL,
         type TEXT NOT NULL,
+        target_url TEXT DEFAULT '',      -- section to redirect to
         is_read INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
@@ -162,6 +163,7 @@ export async function initializeDatabase(): Promise<SqlJsDatabase> {
     try { db.run('ALTER TABLE quiz_attempts ADD COLUMN time_limit INTEGER DEFAULT 0'); } catch (e) { }
     try { db.run('ALTER TABLE attempt_answers ADD COLUMN uploaded_file TEXT DEFAULT \'\''); } catch (e) { }
     try { db.run('ALTER TABLE questions ADD COLUMN subtopic_id INTEGER DEFAULT NULL'); } catch (e) { }
+    try { db.run('ALTER TABLE notifications ADD COLUMN target_url TEXT DEFAULT \'\''); } catch (e) { }
 
     saveDatabase();
     console.log('✅ Database connected to all files and working properly');

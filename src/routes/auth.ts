@@ -23,8 +23,8 @@ router.post('/register', async (req: AuthRequest, res: Response) => {
         console.log(`[Auth] Registered new student: ${username} (ID: ${lastId})`);
 
         // Notify admin
-        db.run('INSERT INTO notifications (recipient_role, message, type) VALUES (?, ?, ?)',
-            ['admin', `New student registered: ${full_name} (@${username})`, 'registration']);
+        db.run('INSERT INTO notifications (recipient_role, message, type, target_url) VALUES (?, ?, ?, ?)',
+            ['admin', `New student registered: ${full_name} (@${username})`, 'registration', 'students']);
 
         dbModule.saveDatabase();
         console.log(`[Auth] Database saved after registration of ${username}`);

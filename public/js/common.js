@@ -127,12 +127,24 @@ function playNotificationSound(isSuccess = false) {
     }
 }
 
-function showToast(message, type = 'success') {
+function showToast(message, type = 'success', targetSection = '') {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
+
+    if (targetSection) {
+        toast.classList.add('clickable');
+        toast.style.cursor = 'pointer';
+        toast.title = `Click to view ${targetSection}`;
+        toast.onclick = () => {
+            if (typeof showSection === 'function') {
+                showSection(targetSection);
+                toast.remove();
+            }
+        };
+    }
 
     // Icon mapping
     let icon = '✨';
@@ -144,6 +156,7 @@ function showToast(message, type = 'success') {
     toast.innerHTML = `
         <span class="toast-icon">${icon}</span>
         <span class="toast-message">${message}</span>
+        ${targetSection ? '<span style="margin-left:auto; font-size: 0.7rem; opacity: 0.6;">View →</span>' : ''}
     `;
 
     container.appendChild(toast);
@@ -152,7 +165,7 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.classList.add('hide');
         setTimeout(() => toast.remove(), 500);
-    }, 4000);
+    }, 6000); // Slightly longer for clickable ones
 }
 
 async function startNotificationPolling() {
@@ -178,7 +191,7 @@ async function startNotificationPolling() {
                     else if (n.type === 'registration') icon = '👋';
 
                     if (typeof showToast === 'function') {
-                        showToast(`${icon} ${n.message}`);
+                        showToast(`${icon} ${n.message}`, 'info', n.target_url);
                     }
                 });
 
