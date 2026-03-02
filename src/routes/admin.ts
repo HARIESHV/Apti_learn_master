@@ -1,10 +1,39 @@
 import { Router, Response } from 'express';
 import dbModule, { getOne, getAll } from '../database';
 import { AuthRequest, authenticateToken, requireRole } from '../middleware/auth';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 const router = Router();
 
 router.use(authenticateToken, requireRole('admin'));
+
+// Multer config for question images
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, '..', '..', 'public', 'uploads', 'questions');
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'q-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
+
+// POST /api/admin/questions/upload
+router.post('/questions/upload', upload.single('file'), (req: AuthRequest, res: Response) => {
+    if (!req.file) {
+        res.status(400).json({ error: 'No file uploaded' });
+        return;
+    }
+    const filePath = `/uploads/questions/${req.file.filename}`;
+    res.json({ message: 'File uploaded successfully', file_path: filePath });
+});
 
 // GET /api/admin/dashboard
 router.get('/dashboard', (req: AuthRequest, res: Response) => {
@@ -154,15 +183,15 @@ router.get('/questions', (req: AuthRequest, res: Response) => {
 // POST /api/admin/questions
 router.post('/questions', (req: AuthRequest, res: Response) => {
     try {
-        const { category_id, subtopic_name, question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, time_limit } = req.body;
-        if (!category_id || !question_text || !option_a || !option_b || !option_c || !option_d || !correct_answer) {
+        const { category_id, subtopic_name, question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, time_limit, question_image } = req.body;
+        if (!category_id || (!question_text && !question_image) || !option_a || !option_b || !option_c || !option_d || !correct_answer) {
             res.status(400).json({ error: 'All fields are required' }); return;
         }
         const db = dbModule.getDb();
         db.run(`
-      INSERT INTO questions (category_id, subtopic_name, question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, time_limit, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [category_id, subtopic_name || '', question_text, question_description || '', option_a, option_b, option_c, option_d, correct_answer, difficulty || 'medium', time_limit || 0, req.user!.id]);
+      INSERT INTO questions (category_id, subtopic_name, question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, time_limit, question_image, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [category_id, subtopic_name || '', question_text || '', question_description || '', option_a, option_b, option_c, option_d, correct_answer, difficulty || 'medium', time_limit || 0, question_image || '', req.user!.id]);
         const lastId = (db.exec('SELECT last_insert_rowid() as id')[0].values[0][0]) as number;
         // Notify students
         db.run('INSERT INTO notifications (recipient_role, message, type, target_url) VALUES (?, ?, ?, ?)',
@@ -178,12 +207,18 @@ router.post('/questions', (req: AuthRequest, res: Response) => {
 // PUT /api/admin/questions/:id
 router.put('/questions/:id', (req: AuthRequest, res: Response) => {
     try {
-        const { question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, category_id, subtopic_name, time_limit } = req.body;
+        const { question_text, question_description, option_a, option_b, option_c, option_d, correct_answer, difficulty, category_id, subtopic_name, time_limit, question_image } = req.body;
+        if (!category_id || (!question_text && !question_image) || !option_a || !option_b || !option_c || !option_d || !correct_answer) {
+            res.status(400).json({ error: 'All fields are required' }); return;
+        }
         const db = dbModule.getDb();
         db.run(`
-      UPDATE questions SET question_text = ?, question_description = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?,
-      correct_answer = ?, difficulty = ?, time_limit = ?, category_id = ?, subtopic_name = ? WHERE id = ?
-    `, [question_text, question_description || '', option_a, option_b, option_c, option_d, correct_answer, difficulty, time_limit || 0, category_id, subtopic_name || '', parseInt(req.params.id as string)]);
+      UPDATE questions 
+      SET category_id = ?, subtopic_name = ?, question_text = ?, question_description = ?, 
+          option_a = ?, option_b = ?, option_c = ?, option_d = ?, 
+          correct_answer = ?, difficulty = ?, time_limit = ?, question_image = ?
+      WHERE id = ?
+    `, [category_id, subtopic_name || '', question_text || '', question_description || '', option_a, option_b, option_c, option_d, correct_answer, difficulty || 'medium', time_limit || 0, question_image || '', parseInt(req.params.id as string)]);
         dbModule.saveDatabase();
         res.json({ message: 'Question updated' });
     } catch (err) {

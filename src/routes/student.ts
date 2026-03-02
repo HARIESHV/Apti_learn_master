@@ -132,7 +132,7 @@ router.post('/quiz/start', (req: AuthRequest, res: Response) => {
         const category = getOne('SELECT * FROM categories WHERE id = ?', [category_id]);
 
         const questions = getAll(`
-      SELECT id, question_text, question_description, option_a, option_b, option_c, option_d, difficulty
+      SELECT id, question_text, question_description, question_image, option_a, option_b, option_c, option_d, difficulty
       FROM questions WHERE category_id = ?
       ORDER BY RANDOM() LIMIT ?
     `, [category_id, limit]);

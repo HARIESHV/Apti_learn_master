@@ -247,6 +247,14 @@ function renderQuestion() {
     document.getElementById('question-number').textContent = `Question ${currentQuiz.currentIndex + 1}`;
     document.getElementById('question-text').textContent = q.question_text;
 
+    const img = document.getElementById('question-image');
+    if (q.question_image) {
+        img.style.display = 'block';
+        img.src = q.question_image;
+    } else {
+        img.style.display = 'none';
+    }
+
     const desc = document.getElementById('question-description');
     if (q.question_description) {
         desc.style.display = 'block';
@@ -343,7 +351,8 @@ function showResults(data) {
 
         return `
             <div class="glass-card" style="padding: 1.5rem; margin-bottom: 1rem; border-left: 4px solid ${r.is_correct ? 'var(--accent-success)' : 'var(--accent-danger)'};">
-                <p style="font-weight:600; margin-bottom: 1rem;">${i + 1}. ${q.question_text}</p>
+                <p style="font-weight:600; margin-bottom: 1rem;">${i + 1}. ${q.question_text || '[Image Question]'}</p>
+                ${q.question_image ? `<img src="${q.question_image}" style="max-width:100%; border-radius:8px; margin-bottom:1rem; border:1px solid rgba(255,255,255,0.1);">` : ''}
                 <div style="font-size: 0.875rem; display:grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
                     <div>Your: <span style="font-weight:700; color:${r.is_correct ? 'var(--accent-success)' : 'var(--accent-danger)'}">${r.selected || 'No Answer'}</span></div>
                     <div>Correct: <span style="font-weight:700; color:var(--accent-success)">${r.correct}</span></div>

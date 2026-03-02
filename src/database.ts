@@ -93,6 +93,8 @@ export async function initializeDatabase(): Promise<SqlJsDatabase> {
           difficulty TEXT NOT NULL DEFAULT 'medium' CHECK(difficulty IN ('easy', 'medium', 'hard')),
           time_limit INTEGER DEFAULT 0,
           subtopic_id INTEGER DEFAULT NULL,
+          subtopic_name TEXT DEFAULT '',
+          question_image TEXT DEFAULT '',
           created_by INTEGER REFERENCES users(id),
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
@@ -164,15 +166,29 @@ export async function initializeDatabase(): Promise<SqlJsDatabase> {
       `);
 
     // Migration: add new columns to existing tables if they don't exist
-    try { db.run('ALTER TABLE categories ADD COLUMN time_limit INTEGER DEFAULT 0'); } catch (e) { }
-    try { db.run('ALTER TABLE categories ADD COLUMN access_type TEXT DEFAULT \'lifetime\''); } catch (e) { }
-    try { db.run('ALTER TABLE questions ADD COLUMN question_description TEXT DEFAULT \'\''); } catch (e) { }
-    try { db.run('ALTER TABLE questions ADD COLUMN time_limit INTEGER DEFAULT 0'); } catch (e) { }
-    try { db.run('ALTER TABLE quiz_attempts ADD COLUMN time_limit INTEGER DEFAULT 0'); } catch (e) { }
-    try { db.run('ALTER TABLE attempt_answers ADD COLUMN uploaded_file TEXT DEFAULT \'\''); } catch (e) { }
-    try { db.run('ALTER TABLE questions ADD COLUMN subtopic_id INTEGER DEFAULT NULL'); } catch (e) { }
-    try { db.run('ALTER TABLE questions ADD COLUMN subtopic_name TEXT DEFAULT \'\''); } catch (e) { }
-    try { db.run('ALTER TABLE notifications ADD COLUMN target_url TEXT DEFAULT \'\''); } catch (e) { }
+    try { db.run('ALTER TABLE categories ADD COLUMN time_limit INTEGER DEFAULT 0'); } catch (e) { console.error('Migration error (categories.time_limit):', e); }
+    try { db.run('ALTER TABLE categories ADD COLUMN access_type TEXT DEFAULT \'lifetime\''); } catch (e) { console.error('Migration error (categories.access_type):', e); }
+    try { db.run('ALTER TABLE questions ADD COLUMN question_description TEXT DEFAULT \'\''); } catch (e) { console.error('Migration error (questions.description):', e); }
+    try { db.run('ALTER TABLE questions ADD COLUMN time_limit INTEGER DEFAULT 0'); } catch (e) { console.error('Migration error (questions.time_limit):', e); }
+    try { db.run('ALTER TABLE quiz_attempts ADD COLUMN time_limit INTEGER DEFAULT 0'); } catch (e) { console.error('Migration error (attempts.time_limit):', e); }
+    try { db.run('ALTER TABLE attempt_answers ADD COLUMN uploaded_file TEXT DEFAULT \'\''); } catch (e) { console.error('Migration error (answers.uploaded_file):', e); }
+    try { db.run('ALTER TABLE questions ADD COLUMN subtopic_id INTEGER DEFAULT NULL'); } catch (e) { console.error('Migration error (questions.subtopic_id):', e); }
+    try { db.run('ALTER TABLE questions ADD COLUMN subtopic_name TEXT DEFAULT \'\''); } catch (e) { console.error('Migration error (questions.subtopic_name):', e); }
+    try { db.run('ALTER TABLE questions ADD COLUMN question_image TEXT DEFAULT \'\''); } catch (e) { console.error('Migration error (questions.question_image):', e); }
+    try { db.run('ALTER TABLE notifications ADD COLUMN target_url TEXT DEFAULT \'\''); } catch (e) { console.error('Migration error (notifications.target_url):', e); }
+
+    // Auto-ensure the 4 required categories exist (safe: UNIQUE constraint prevents duplicates)
+    const defaultCategories = [
+      ['Quantitative Aptitude', 'Numbers, algebra, arithmetic, and mathematical problem solving', '🔢'],
+      ['Logical Reasoning', 'Patterns, sequences, puzzles, and analytical thinking', '🧠'],
+      ['Verbal Ability', 'Grammar, vocabulary, comprehension, and verbal reasoning', '🗣️'],
+      ['Placement / Company Focused', 'Mixed aptitude, logical puzzles, and placement-style problems', '💻'],
+    ];
+    for (const [name, description, icon] of defaultCategories) {
+      try {
+        db.run('INSERT INTO categories (name, description, icon) VALUES (?, ?, ?)', [name, description, icon]);
+      } catch (e) { /* already exists */ }
+    }
 
     saveDatabase();
     console.log('🚀 High-Speed Database Connected and optimized');

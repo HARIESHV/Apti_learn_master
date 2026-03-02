@@ -1,0 +1,91 @@
+{
+  "schema": [
+    {
+      "name": "id",
+      "type": "INTEGER"
+    },
+    {
+      "name": "category_id",
+      "type": "INTEGER"
+    },
+    {
+      "name": "question_text",
+      "type": "TEXT"
+    },
+    {
+      "name": "option_a",
+      "type": "TEXT"
+    },
+    {
+      "name": "option_b",
+      "type": "TEXT"
+    },
+    {
+      "name": "option_c",
+      "type": "TEXT"
+    },
+    {
+      "name": "option_d",
+      "type": "TEXT"
+    },
+    {
+      "name": "correct_answer",
+      "type": "TEXT"
+    },
+    {
+      "name": "difficulty",
+      "type": "TEXT"
+    },
+    {
+      "name": "created_by",
+      "type": "INTEGER"
+    },
+    {
+      "name": "created_at",
+      "type": "DATETIME"
+    },
+    {
+      "name": "question_description",
+      "type": "TEXT"
+    },
+    {
+      "name": "time_limit",
+      "type": "INTEGER"
+    },
+    {
+      "name": "subtopic_id",
+      "type": "INTEGER"
+    },
+    {
+      "name": "subtopic_name",
+      "type": "TEXT"
+    }
+  ],
+  "categories": [
+    {
+      "id": 11,
+      "name": "Data Interpretation"
+    },
+    {
+      "id": 12,
+      "name": "General Knowledge"
+    },
+    {
+      "id": 9,
+      "name": "Logical Reasoning"
+    },
+    {
+      "id": 13,
+      "name": "Placement / Company Focused"
+    },
+    {
+      "id": 8,
+      "name": "Quantitative Aptitude"
+    },
+    {
+      "id": 10,
+      "name": "Verbal Ability"
+    }
+  ],
+  "totalQuestions": 0
+}

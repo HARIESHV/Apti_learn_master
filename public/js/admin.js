@@ -187,8 +187,13 @@ async function loadQuestions() {
     tbody.innerHTML = data.questions.map(q => `
         <tr>
             <td>
-                <strong>${q.question_text}</strong>
-                ${q.question_description ? `<div style="color:var(--text-muted); font-size:0.75rem; margin-top:4px;">${q.question_description}</div>` : ''}
+                <div style="display:flex; gap:1rem; align-items:flex-start;">
+                    ${q.question_image ? `<img src="${q.question_image}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; border:1px solid var(--border-color);">` : ''}
+                    <div>
+                        <strong>${q.question_text || (q.question_image ? '[Image Question]' : 'No text')}</strong>
+                        ${q.question_description ? `<div style="color:var(--text-muted); font-size:0.75rem; margin-top:4px;">${q.question_description}</div>` : ''}
+                    </div>
+                </div>
             </td>
             <td>
                 <div>${q.category_name}</div>
@@ -215,6 +220,15 @@ function openQuestionModal() {
     document.getElementById('q-time-mins').value = '0';
     document.getElementById('q-time-secs').value = '0';
     document.getElementById('q-subtopic').innerHTML = '<option value="">— Select a Subtopic —</option>';
+
+    // Reset image preview
+    document.getElementById('q-image-filename').innerText = 'No file chosen';
+    document.getElementById('q-image-preview-container').style.display = 'none';
+    document.getElementById('q-image-preview').src = '';
+    document.getElementById('q-image-url').value = '';
+    document.getElementById('q-text').disabled = false;
+    document.getElementById('q-text').required = true;
+
     document.getElementById('question-modal').classList.add('active');
 }
 
@@ -239,6 +253,20 @@ function editQuestion(q) {
     document.getElementById('q-description').value = q.question_description || '';
     document.getElementById('q-difficulty').value = q.difficulty;
 
+    // Handle existing image
+    if (q.question_image) {
+        document.getElementById('q-image-url').value = q.question_image;
+        document.getElementById('q-image-preview').src = q.question_image;
+        document.getElementById('q-image-preview-container').style.display = 'block';
+        document.getElementById('q-image-filename').innerText = 'Current image';
+        document.getElementById('q-text').required = false;
+    } else {
+        document.getElementById('q-image-url').value = '';
+        document.getElementById('q-image-preview-container').style.display = 'none';
+        document.getElementById('q-image-filename').innerText = 'No file chosen';
+        document.getElementById('q-text').required = true;
+    }
+
     const totalSecs = q.time_limit || 0;
     document.getElementById('q-time-days').value = Math.floor(totalSecs / 86400);
     document.getElementById('q-time-hours').value = Math.floor((totalSecs % 86400) / 3600);
@@ -251,39 +279,115 @@ function editQuestion(q) {
 document.getElementById('question-form').onsubmit = async (e) => {
     e.preventDefault();
     const id = document.getElementById('q-edit-id').value;
-    const body = {
-        category_id: document.getElementById('q-category').value,
-        question_text: document.getElementById('q-text').value,
-        question_description: document.getElementById('q-description').value,
-        option_a: document.getElementById('q-option-a').value,
-        option_b: document.getElementById('q-option-b').value,
-        option_c: document.getElementById('q-option-c').value,
-        option_d: document.getElementById('q-option-d').value,
-        correct_answer: document.getElementById('q-correct').value,
-        difficulty: document.getElementById('q-difficulty').value,
-        subtopic_name: document.getElementById('q-subtopic').value || '',
-        time_limit: (parseInt(document.getElementById('q-time-days').value) || 0) * 86400 +
-            (parseInt(document.getElementById('q-time-hours').value) || 0) * 3600 +
-            (parseInt(document.getElementById('q-time-mins').value) || 0) * 60 +
-            (parseInt(document.getElementById('q-time-secs').value) || 0)
-    };
+    const imageInput = document.getElementById('q-image');
+    let questionImageUrl = document.getElementById('q-image-url').value;
 
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `${API_BASE}/admin/questions/${id}` : `${API_BASE}/admin/questions`;
+    try {
+        // 1. Upload NEW image if present
+        if (imageInput.files && imageInput.files[0]) {
+            const formData = new FormData();
+            formData.append('file', imageInput.files[0]);
+            const uploadRes = await fetch(`${API_BASE}/admin/questions/upload`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                body: formData
+            });
+            if (uploadRes.ok) {
+                const uploadData = await uploadRes.json();
+                questionImageUrl = uploadData.file_path;
+            } else {
+                showToast('Image upload failed', 'error');
+                return;
+            }
+        }
 
-    const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-        body: JSON.stringify(body)
-    });
+        // 2. Submit Question Data
+        const body = {
+            category_id: document.getElementById('q-category').value,
+            question_text: document.getElementById('q-text').value,
+            question_description: document.getElementById('q-description').value,
+            option_a: document.getElementById('q-option-a').value,
+            option_b: document.getElementById('q-option-b').value,
+            option_c: document.getElementById('q-option-c').value,
+            option_d: document.getElementById('q-option-d').value,
+            correct_answer: document.getElementById('q-correct').value,
+            difficulty: document.getElementById('q-difficulty').value,
+            subtopic_name: document.getElementById('q-subtopic').value || '',
+            question_image: questionImageUrl,
+            time_limit: (parseInt(document.getElementById('q-time-days').value) || 0) * 86400 +
+                (parseInt(document.getElementById('q-time-hours').value) || 0) * 3600 +
+                (parseInt(document.getElementById('q-time-mins').value) || 0) * 60 +
+                (parseInt(document.getElementById('q-time-secs').value) || 0)
+        };
 
-    if (res.ok) {
-        if (typeof playNotificationSound === 'function') playNotificationSound(true);
-        showToast(id ? 'Question updated' : 'Question created');
-        closeQuestionModal();
-        loadQuestions();
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `${API_BASE}/admin/questions/${id}` : `${API_BASE}/admin/questions`;
+
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            if (typeof playNotificationSound === 'function') playNotificationSound(true);
+            showToast(id ? 'Question updated' : 'Question created', 'success');
+            closeQuestionModal();
+            loadQuestions();
+        } else {
+            showToast(data.error || 'Failed to save question', 'error');
+        }
+    } catch (err) {
+        showToast('Network error while saving question', 'error');
     }
 };
+
+function handleQuestionImageSelect(input) {
+    const filenameSpan = document.getElementById('q-image-filename');
+    const previewContainer = document.getElementById('q-image-preview-container');
+    const previewImg = document.getElementById('q-image-preview');
+    const qText = document.getElementById('q-text');
+
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        filenameSpan.innerText = file.name;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            previewImg.src = e.target.result;
+            previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+
+        qText.required = false;
+    } else {
+        filenameSpan.innerText = 'No file chosen';
+        if (!document.getElementById('q-image-url').value) {
+            previewContainer.style.display = 'none';
+            qText.required = true;
+        }
+    }
+}
+
+function clearQuestionImage() {
+    const input = document.getElementById('q-image');
+    const filenameSpan = document.getElementById('q-image-filename');
+    const previewContainer = document.getElementById('q-image-preview-container');
+    const previewImg = document.getElementById('q-image-preview');
+    const qImageUrl = document.getElementById('q-image-url');
+    const qText = document.getElementById('q-text');
+
+    input.value = '';
+    filenameSpan.innerText = 'No file chosen';
+    previewContainer.style.display = 'none';
+    previewImg.src = '';
+    qImageUrl.value = '';
+
+    if (!qText.value.trim()) {
+        qText.required = true;
+    }
+}
 
 async function deleteQuestion(id) {
     if (!confirm('Are you sure you want to delete this question?')) return;

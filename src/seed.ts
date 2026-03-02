@@ -80,13 +80,12 @@ async function seed() {
         }
     }
 
-    // Create categories
+    // Create categories matching the hardcoded subtopics in admin.js
     const categories = [
         ['Quantitative Aptitude', 'Numbers, algebra, arithmetic, and mathematical problem solving', '🔢'],
-        ['Logical Reasoning', 'Patterns, sequences, puzzles, and analytical thinking', '🧩'],
-        ['Verbal Ability', 'Grammar, vocabulary, comprehension, and verbal reasoning', '📝'],
-        ['Data Interpretation', 'Charts, graphs, tables, and data analysis', '📊'],
-        ['General Knowledge', 'Current affairs, science, history, and geography', '🌍'],
+        ['Logical Reasoning', 'Patterns, sequences, puzzles, and analytical thinking', '🧠'],
+        ['Verbal Ability', 'Grammar, vocabulary, comprehension, and verbal reasoning', '🗣️'],
+        ['Placement / Company Focused', 'Mixed aptitude, logical puzzles, and placement-style problems', '💻'],
     ];
 
     const adminUser = getOne("SELECT id FROM users WHERE username = 'admin'");
